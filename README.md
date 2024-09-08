@@ -183,7 +183,7 @@ notus-react
 │       │   ├── Dashboard.js
 │       │   ├── Maps.js
 │       │   ├── Settings.js
-│       │   └── Tables.js
+│       │   └── Products.js
 │       └── auth
 │           ├── Login.js
 │           └── Register.js

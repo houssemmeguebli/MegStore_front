@@ -5,7 +5,7 @@ import React from "react";
 import CardTable from "components/Cards/CardTable.js";
 import ProductForm from "../../components/Products/ProductForm";
 
-export default function Tables() {
+export default function Products() {
   return (
     <>
         <div className="flex flex-wrap mt-4">

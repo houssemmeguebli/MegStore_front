@@ -1,17 +1,17 @@
 import React from "react";
+import OrdersTable from "../../components/Orders/OrdersTable";
+import OrderDetails from "../../components/Orders/OrderDetails";
 
-import CategoryForm from "../../components/Categories/CategeriesForm";
-import CategoriesTable from "../../components/Categories/CategoriesTable";
 
-export default function Categories() {
+export default function Orders() {
     return (
         <>
             <div className="flex flex-wrap mt-4">
                 <div className="w-full mb-12 px-4">
-                    <CategoryForm/>
+                    <OrderDetails/>
                 </div>
                 <div className="w-full mb-12 px-4">
-                    <CategoriesTable/>
+                  <OrdersTable/>
                 </div>
             </div>
         </>

@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { TextField, Button, Typography, CircularProgress, Grid, Switch, FormControlLabel, Box, Paper } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import ProductService from "../../_services/ProductService";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import ProductService from "../../_services/ProductService";
 
 export default function ProductDetail() {
     const { productId } = useParams();
     const navigate = useNavigate();
     const [product, setProduct] = useState(null);
-    const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
 
     useEffect(() => {
         async function fetchProduct() {
@@ -20,11 +20,9 @@ export default function ProductDetail() {
                 const data = await ProductService.getProductById(productId);
                 setProduct(data);
 
-                // Assuming you have a method to fetch related products
-                const relatedData = await ProductService.getRelatedProducts(data.categoryId);
-                setRelatedProducts(relatedData);
             } catch (error) {
                 console.error("Error fetching product:", error);
+                setError("Failed to fetch product details.");
             }
         }
 
@@ -46,7 +44,9 @@ export default function ProductDetail() {
     };
 
     const handleFileChange = (e) => {
-        setImageFile(e.target.files[0]);
+        const file = e.target.files[0];
+        setImageFile(file);
+        setImagePreview(URL.createObjectURL(file)); // Set the preview URL
     };
 
     const handleSubmit = async (e) => {
@@ -60,8 +60,8 @@ export default function ProductDetail() {
             setSuccess(true);
             setError('');
             setImageFile(null);
-            navigate('/admin/tables');
-
+            setImagePreview(''); // Clear preview
+            navigate('/admin/products');
         } catch (error) {
             setError("Failed to update product. Please try again.");
             setSuccess(false);
@@ -91,141 +91,134 @@ export default function ProductDetail() {
     };
 
     return (
-        <Box sx={{ padding: '24px', marginTop: '10%' }}>
-            <Paper elevation={3} sx={{ padding: '24px' }}>
-                <Typography variant="h4" gutterBottom>Edit Product</Typography>
-                {error && <Typography color="error">{error}</Typography>}
-                {success && <Typography color="primary">Product updated successfully!</Typography>}
-                <Box component="form" sx={{ mt: 2 }} onSubmit={handleSubmit} noValidate autoComplete="off">
-                    <Grid container spacing={2} alignItems="center">
-                        {/* Product Name */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="productName"
-                                label="Product Name"
-                                fullWidth
-                                value={product.productName}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
+        <Box className="p-8 mx-auto max-w-7xl" style={{ marginTop: '10%' }}>
+            <Paper elevation={3} className="p-8 shadow-lg">
+                <Typography variant="h4" gutterBottom className="mb-4 font-semibold">Edit Product</Typography>
+                {error && <Typography color="error" className="mb-4">{error}</Typography>}
+                {success && <Typography color="primary" className="mb-4">Product updated successfully!</Typography>}
+                <Box component="form" className="mt-4" onSubmit={handleSubmit} noValidate autoComplete="off">
+                    <Grid container spacing={4}>
+                        {/* Product Image */}
+                        <Grid item xs={12} sm={6} className="flex justify-center mb-6">
+                            <img
+                                src={imagePreview || `https://localhost:7048/${product.imageUrl}`}
+                                alt={product.productName}
+                                className="w-full max-w-lg h-auto object-cover rounded-lg shadow-md"
+                                onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = "https://via.placeholder.com/300x400";
+                                }}
                             />
                         </Grid>
 
-                        {/* Product Price */}
+                        {/* Product Details */}
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="productPrice"
-                                label="Product Price (USD)"
-                                type="number"
-                                fullWidth
-                                value={product.productPrice}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
-                            />
-                        </Grid>
-
-                        {/* Stock Quantity */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="stockQuantity"
-                                label="Stock Quantity"
-                                type="number"
-                                fullWidth
-                                value={product.stockQuantity}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
-                            />
-                        </Grid>
-
-                        {/* Availability */}
-                        <Grid item xs={12} sm={6}>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={product.isAvailable}
-                                        onChange={handleSwitchChange}
-                                        name="isAvailable"
+                            <Grid container spacing={4}>
+                                {/* Product Name */}
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="productName"
+                                        label="Product Name"
+                                        fullWidth
+                                        value={product.productName}
+                                        onChange={handleChange}
+                                        required
+                                        variant="outlined"
+                                        className="mb-4"
                                     />
-                                }
-                                label="Available"
-                            />
-                        </Grid>
+                                </Grid>
 
-                        {/* Product Description */}
-                        <Grid item xs={12}>
-                            <TextField
-                                name="productDescription"
-                                label="Product Description"
-                                fullWidth
-                                value={product.productDescription}
-                                onChange={handleChange}
-                                multiline
-                                rows={3}
-                                variant="outlined"
-                            />
-                        </Grid>
+                                {/* Product Price */}
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="productPrice"
+                                        label="Product Price (USD)"
+                                        type="number"
+                                        fullWidth
+                                        value={product.productPrice}
+                                        onChange={handleChange}
+                                        required
+                                        variant="outlined"
+                                        className="mb-4"
+                                    />
+                                </Grid>
 
-                        {/* Image Upload */}
-                        <Grid item xs={12} sm={6}>
-                            <Button variant="contained" component="label" fullWidth>
-                                Upload Product Image
-                                <input type="file" hidden onChange={handleFileChange} accept="image/*" />
-                            </Button>
-                            {imageFile && <Typography variant="body2">{imageFile.name}</Typography>}
-                        </Grid>
+                                {/* Stock Quantity */}
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="stockQuantity"
+                                        label="Stock Quantity"
+                                        type="number"
+                                        fullWidth
+                                        value={product.stockQuantity}
+                                        onChange={handleChange}
+                                        required
+                                        variant="outlined"
+                                        className="mb-4"
+                                    />
+                                </Grid>
 
-                        {/* Date Added */}
-                        <Grid item xs={12} sm={6}>
-                            <Typography variant="body2">
-                                <strong>Date Added:</strong> {new Date(product.dateAdded).toLocaleDateString()}
-                            </Typography>
-                        </Grid>
+                                {/* Product Description */}
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="productDescription"
+                                        label="Product Description"
+                                        fullWidth
+                                        value={product.productDescription}
+                                        onChange={handleChange}
+                                        multiline
+                                        rows={4}
+                                        variant="outlined"
+                                        className="mb-4"
+                                    />
+                                </Grid>
 
-                        {/* Submit Button */}
-                        <Grid item xs={12}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                fullWidth
-                                disabled={loading}
-                                size="large"
-                            >
-                                {loading ? <CircularProgress size={24} /> : 'Save Changes'}
-                            </Button>
+                                {/* Availability and Date Added */}
+                                <Grid item xs={12} className="flex items-center justify-between">
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={product.isAvailable}
+                                                onChange={handleSwitchChange}
+                                                name="isAvailable"
+                                            />
+                                        }
+                                        label="Available"
+                                        className="mb-4"
+                                    />
+                                    <Typography variant="body2" className="mb-4">
+                                        <strong>Date Added:</strong> {new Date(product.dateAdded).toLocaleDateString()}
+                                    </Typography>
+                                </Grid>
+
+                                {/* Image Upload */}
+                                <Grid item xs={12}>
+                                    <Button variant="contained" component="label" fullWidth>
+                                        Upload Product Image
+                                        <input type="file" hidden onChange={handleFileChange} accept="image/*" />
+                                    </Button>
+                                    {imageFile && <Typography variant="body2" className="mt-2">{imageFile.name}</Typography>}
+                                </Grid>
+
+                                {/* Submit Button */}
+                                <Grid item xs={12}>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        type="submit"
+                                        fullWidth
+                                        disabled={loading}
+                                        size="large"
+                                    >
+                                        {loading ? <CircularProgress size={24} /> : 'Save '}
+                                    </Button>
+                                </Grid>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </Box>
             </Paper>
 
-            {/* Related Products Section */}
-            <Box sx={{ marginTop: '32px' }}>
-                <Typography variant="h5" gutterBottom>Related Products</Typography>
-                <Grid container spacing={3}>
-                    {relatedProducts.map((relatedProduct) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={relatedProduct.productId}>
-                            <Paper elevation={2} sx={{ padding: '16px' }}>
-                                <img
-                                    src={`https://localhost:7048/${relatedProduct.imageUrl}`}
-                                    alt={relatedProduct.productName}
-                                    className="w-full h-40 object-cover rounded mb-4"
-                                    onError={(e) => {
-                                        e.target.onerror = null;
-                                        e.target.src = "https://via.placeholder.com/300x300";
-                                    }}
-                                />
-                                <Typography variant="h6">{relatedProduct.productName}</Typography>
-                                <Typography variant="body2">${relatedProduct.productPrice} USD</Typography>
-                                <Link to={`/product/${relatedProduct.productId}`} className="text-blue-600 hover:text-blue-800">
-                                    View Details
-                                </Link>
-                            </Paper>
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
         </Box>
     );
 }

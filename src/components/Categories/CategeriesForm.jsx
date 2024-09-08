@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { TextField, Button, Container, Typography, CircularProgress, Grid, Box, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import CategoryService from '../../_services/CategoryService'; // Assuming you have a CategoryService like ProductService
+import CategoryService from "../../_services/CategoryService";
 
 const CategoryForm = () => {
     const [category, setCategory] = useState({
-        categoryName: '',
+        categorydName: '', // Using categorydName as per your current backend structure
         categoryDescription: ''
     });
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -34,12 +35,10 @@ const CategoryForm = () => {
 
             // Reset the form after successful submission
             setCategory({
-                categoryName: '',
+                categorydName: '', // Reset form using categorydName
                 categoryDescription: ''
             });
 
-            // Navigate to the /admin/tables page after success
-            navigate('/admin/tables');
         } catch (error) {
             console.error('Error adding category:', error);
             setError('Failed to add category. Please try again.');
@@ -49,20 +48,27 @@ const CategoryForm = () => {
     };
 
     return (
-        <Container>
-            <Paper elevation={3} sx={{ padding: '24px', marginTop: '32px' }}>
-                <Typography variant="h4" gutterBottom>Add Category</Typography>
-                {error && <Typography color="error">{error}</Typography>}
-                {success && <Typography color="primary">Category added successfully!</Typography>}
-                <Box component="form" sx={{ mt: 2 }} onSubmit={handleSubmit} noValidate autoComplete="off">
-                    <Grid container spacing={2} alignItems="center">
+        <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded bg-white p-6">
+            <div className="rounded-t mb-0 px-4 py-3 border-0">
+                <div className="flex flex-wrap items-center">
+                    <div className="relative w-full px-4 max-w-full flex-grow flex-1">
+                        <h3 className="font-semibold text-lg text-blueGray-700">
+                            Add Category
+                        </h3>
+                        {error && <Typography className="text-red-500">{error}</Typography>}
+                        {success && <Typography className="font-semibold text-lg text-green-500">Category added successfully!</Typography>}
+                    </div>
+                </div>
+
+                <Box component="form" className="mt-4" onSubmit={handleSubmit} noValidate autoComplete="off">
+                    <Grid container spacing={2}>
                         {/* Category Name */}
                         <Grid item xs={12}>
                             <TextField
-                                name="categoryName"
+                                name="categorydName" // Use categorydName for consistency with backend
                                 label="Category Name"
                                 fullWidth
-                                value={category.categoryName}
+                                value={category.categorydName} // Bind to categorydName
                                 onChange={handleChange}
                                 required
                                 variant="outlined"
@@ -84,7 +90,7 @@ const CategoryForm = () => {
                         </Grid>
 
                         {/* Submit Button */}
-                        <Grid item xs={12} sx={{ textAlign: 'center', mt: 2 }}>
+                        <Grid item xs={12} className="text-center mt-4">
                             <Button
                                 variant="contained"
                                 color="primary"
@@ -93,13 +99,13 @@ const CategoryForm = () => {
                                 disabled={loading}
                                 size="large"
                             >
-                                {loading ? <CircularProgress size={24} /> : 'Add Category'}
+                                {loading ? <CircularProgress size={24}/> : 'Add Category'}
                             </Button>
                         </Grid>
                     </Grid>
                 </Box>
-            </Paper>
-        </Container>
+            </div>
+        </div>
     );
 };
 
