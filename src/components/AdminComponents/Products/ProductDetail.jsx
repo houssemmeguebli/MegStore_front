@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { TextField, Button, Typography, CircularProgress, Grid, Switch, FormControlLabel, Box, Paper } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
-import ProductService from "../../_services/ProductService";
+import ProductService from "../../../_services/ProductService";
 
 export default function ProductDetail() {
     const { productId } = useParams();

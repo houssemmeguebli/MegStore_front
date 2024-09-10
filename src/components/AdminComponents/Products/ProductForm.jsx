@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TextField, Button, Container, Typography, CircularProgress, Grid, Box, MenuItem, FormControl, InputLabel, Select, Paper } from '@mui/material';
-import ProductService from '../../_services/ProductService';
-import CategoryService from '../../_services/CategoryService';
+import ProductService from '../../../_services/ProductService';
+import CategoryService from '../../../_services/CategoryService';
 
 const ProductForm = () => {
     const [product, setProduct] = useState({

@@ -4,10 +4,10 @@ import { IconButton } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import ProductService from "../../_services/ProductService";
+import ProductService from "../../../_services/ProductService";
 import { useNavigate } from "react-router-dom";
 
-export default function CardTable({ color }) {
+export default function ProductTable({ color }) {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
 
@@ -140,10 +140,10 @@ export default function CardTable({ color }) {
   );
 }
 
-CardTable.defaultProps = {
+ProductTable.defaultProps = {
   color: "light",
 };
 
-CardTable.propTypes = {
+ProductTable.propTypes = {
   color: PropTypes.oneOf(["light", "dark"]),
 };

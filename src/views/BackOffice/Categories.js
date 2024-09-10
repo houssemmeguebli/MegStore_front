@@ -1,7 +1,7 @@
 import React from "react";
 
-import CategoryForm from "../../components/Categories/CategeriesForm";
-import CategoriesTable from "../../components/Categories/CategoriesTable";
+import CategoryForm from "../../components/AdminComponents/Categories/CategeriesForm";
+import CategoriesTable from "../../components/AdminComponents/Categories/CategoriesTable";
 
 export default function Categories() {
     return (

@@ -1,6 +1,6 @@
 import React from "react";
-import OrdersTable from "../../components/Orders/OrdersTable";
-import OrderDetails from "../../components/Orders/OrderDetails";
+import OrdersTable from "../../components/AdminComponents/Orders/OrdersTable";
+import OrderDetails from "../../components/AdminComponents/Orders/OrderDetails";
 
 
 export default function Orders() {

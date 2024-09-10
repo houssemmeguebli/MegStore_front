@@ -4,7 +4,7 @@ import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import {Route, useNavigate} from "react-router-dom";
-import CategoryService from "../../_services/CategoryService";
+import CategoryService from "../../../_services/CategoryService";
 import ProductDetail from "../Products/ProductDetail";
 
 export default function CategoriesTable() {

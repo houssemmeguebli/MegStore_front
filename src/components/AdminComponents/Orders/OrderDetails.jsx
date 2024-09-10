@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import OrderService from "../../_services/OrderService";
-import UserService from "../../_services/UserService";
+import OrderService from "../../../_services/OrderService";
+import UserService from "../../../_services/UserService";
 import { FaCalendarAlt, FaShippingFast, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { GiCancel } from 'react-icons/gi';
 

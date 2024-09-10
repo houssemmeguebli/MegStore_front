@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, Button, Container, Typography, CircularProgress, Grid, Box, Paper } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import CategoryService from "../../_services/CategoryService";
+import CategoryService from "../../../_services/CategoryService";
 
 const CategoryForm = () => {
     const [category, setCategory] = useState({

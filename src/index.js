@@ -10,9 +10,11 @@ import Admin from "layouts/Admin.js";
 import Auth from "layouts/Auth.js";
 
 // Views without layouts
-import Landing from "views/Landing.js";
-import Profile from "views/Profile.js";
-import Index from "views/Index.js";
+import Landing from "./views/frontOfiice/Landing.js";
+import Shop from "./views/frontOfiice/Shop";
+import Cart from "./views/frontOfiice/Cart";
+
+
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -24,8 +26,9 @@ root.render(
             <Route path="/auth/*" element={<Auth />} />
             {/* Routes without layouts */}
             <Route path="/landing" element={<Landing />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/" element={<Index />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/" element={<Landing />} />
             {/* Redirect for all unmatched routes */}
             <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -4,7 +4,7 @@ import { IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useNavigate } from "react-router-dom";
-import OrderService from "../../_services/OrderService"; // Adjust import according to your file structure
+import OrderService from "../../../_services/OrderService"; // Adjust import according to your file structure
 
 export default function OrdersTable() {
     const [orders, setOrders] = useState([]);

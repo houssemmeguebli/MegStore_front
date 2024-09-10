@@ -7,15 +7,15 @@ import Sidebar from "components/Sidebar/Sidebar.js";
 import HeaderStats from "components/Headers/HeaderStats.js";
 import FooterAdmin from "components/Footers/FooterAdmin.js";
 
-import Dashboard from "views/admin/Dashboard.js";
-import Settings from "views/admin/Settings.js";
-import Tables from "views/admin/Products.js";
-import ProductDetail from "../components/Products/ProductDetail";
-import Categories from "../views/admin/Categories";
-import Products from "../views/admin/Products";
-import CategoriesDetails from "../components/Categories/CategoriesDetails";
-import OrderDetails from "../components/Orders/OrderDetails";
-import Orders from "../views/admin/Orders";
+import Dashboard from "views/BackOffice/Dashboard.js";
+import Settings from "views/BackOffice/Settings.js";
+import Tables from "views/BackOffice/Products.js";
+import ProductDetail from "../components/AdminComponents/Products/ProductDetail";
+import Categories from "../views/BackOffice/Categories";
+import Products from "../views/BackOffice/Products";
+import CategoriesDetails from "../components/AdminComponents/Categories/CategoriesDetails";
+import OrderDetails from "../components/AdminComponents/Orders/OrderDetails";
+import Orders from "../views/BackOffice/Orders";
 
 export default function Admin() {
     return (
@@ -37,7 +37,7 @@ export default function Admin() {
                         <Route path="orders/:orderId" element={<OrderDetails/>} />
                         <Route path="orders" element={<Orders />} />
 
-                        {/* Redirect from /admin to /admin/dashboard */}
+                        {/* Redirect from /BackOffice to /BackOffice/dashboard */}
                         <Route path="/" element={<Navigate to="dashboard" />} />
                         {/* Redirect any unmatched routes */}
                         <Route path="*" element={<Navigate to="dashboard" />} />

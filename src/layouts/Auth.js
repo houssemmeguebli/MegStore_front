@@ -6,8 +6,8 @@ import Navbar from "components/Navbars/AuthNavbar.js";
 import FooterSmall from "components/Footers/FooterSmall.js";
 
 // Views
-import Login from "views/auth/Login.js";
-import Register from "views/auth/Register.js";
+import Login from "../views/frontOfiice/auth/Login.js";
+import Register from "../views/frontOfiice/auth/Register.js";
 
 export default function Auth() {
     return (

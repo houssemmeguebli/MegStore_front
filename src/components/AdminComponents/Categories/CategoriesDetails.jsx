@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { TextField, Button, Typography, CircularProgress, Grid, Switch, FormControlLabel, Box, Paper } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import CategoryService from "../../_services/CategoryService";
-import ProductService from "../../_services/ProductService";
+import CategoryService from "../../../_services/CategoryService";
+import ProductService from "../../../_services/ProductService";
 
 export default function CategoriesDetails() {
     const { categoryId } = useParams();

@@ -2,8 +2,8 @@ import React from "react";
 
 // components
 
-import CardTable from "components/Cards/CardTable.js";
-import ProductForm from "../../components/Products/ProductForm";
+import ProductForm from "../../components/AdminComponents/Products/ProductForm";
+import ProductTable from "../../components/AdminComponents/Products/ProductTable";
 
 export default function Products() {
   return (
@@ -13,7 +13,7 @@ export default function Products() {
                 <ProductForm/>
             </div>
             <div className="w-full mb-12 px-4">
-                <CardTable/>
+                <ProductTable/>
             </div>
         </div>
     </>

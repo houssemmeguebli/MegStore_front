@@ -150,7 +150,7 @@ notus-react
 │   │   │   ├── CardSettings.js
 │   │   │   ├── CardSocialTraffic.js
 │   │   │   ├── CardStats.js
-│   │   │   └── CardTable.js
+│   │   │   └── ProductTable.js
 │   │   ├── Dropdowns
 │   │   │   ├── IndexDropdown.js
 │   │   │   ├── NotificationDropdown.js
