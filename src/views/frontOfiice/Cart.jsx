@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { Button, Typography, IconButton, TextField, Divider, CardMedia, Box, Container, Snackbar, Alert } from '@mui/material';
 import { Remove, Add, Delete } from '@mui/icons-material';
 import Navbar from "../../components/Navbars/AuthNavbar";
@@ -133,9 +133,12 @@ const Cart = () => {
                                     <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
                                         Total: ${getTotalPrice().toFixed(2)}
                                     </Typography>
-                                    <Button variant="contained" color="primary" onClick={handleCheckout} sx={{ width: '100%' }}>
-                                        Proceed to Checkout
-                                    </Button>
+                                    <Link to={"/order"}>
+                                        <Button variant="contained" color="primary" onClick={handleCheckout} sx={{ width: '100%' }}>
+                                            Proceed to Checkout
+                                        </Button>
+                                    </Link>
+
                                 </Box>
                             </Box>
                         </Box>

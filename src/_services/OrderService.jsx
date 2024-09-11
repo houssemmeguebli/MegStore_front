@@ -29,6 +29,17 @@ class OrderService {
         }
     }
 
+    // Fetch order products by ID
+    async getOrderProductsById(orderId) {
+        try {
+            const response = await axios.get(`${this.baseUrl}/Orderproducts/${orderId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching products for order with ID ${orderId}:`, error);
+            throw error;
+        }
+    }
+
     // Create a new order
     async createOrder(orderData) {
         try {

@@ -16,6 +16,7 @@ import Products from "../views/BackOffice/Products";
 import CategoriesDetails from "../components/AdminComponents/Categories/CategoriesDetails";
 import OrderDetails from "../components/AdminComponents/Orders/OrderDetails";
 import Orders from "../views/BackOffice/Orders";
+import OrderEdit from "../components/AdminComponents/Orders/OrderEdit";
 
 export default function Admin() {
     return (
@@ -35,6 +36,8 @@ export default function Admin() {
                         <Route path="categories/:categoryId" element={<CategoriesDetails/>} />
                         <Route path="categories" element={<Categories />} />
                         <Route path="orders/:orderId" element={<OrderDetails/>} />
+                        <Route path="orders/edit/:orderId" element={<OrderEdit/>} />
+
                         <Route path="orders" element={<Orders />} />
 
                         {/* Redirect from /BackOffice to /BackOffice/dashboard */}

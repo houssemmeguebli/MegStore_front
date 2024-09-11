@@ -13,6 +13,7 @@ import Auth from "layouts/Auth.js";
 import Landing from "./views/frontOfiice/Landing.js";
 import Shop from "./views/frontOfiice/Shop";
 import Cart from "./views/frontOfiice/Cart";
+import Order from "./views/frontOfiice/Order";
 
 
 
@@ -28,6 +29,7 @@ root.render(
             <Route path="/landing" element={<Landing />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/order" element={<Order />} />
             <Route path="/" element={<Landing />} />
             {/* Redirect for all unmatched routes */}
             <Route path="*" element={<Navigate to="/" />} />
