@@ -97,7 +97,7 @@ export default function ProductTable({ color }) {
                   </span>
                   </td>
                   <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                    ${product.productPrice} USD
+                    ${product.productPrice}
                   </td>
                   <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                     {product.stockQuantity}

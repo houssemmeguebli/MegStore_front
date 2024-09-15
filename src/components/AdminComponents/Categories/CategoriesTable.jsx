@@ -6,6 +6,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import {Route, useNavigate} from "react-router-dom";
 import CategoryService from "../../../_services/CategoryService";
 import ProductDetail from "../Products/ProductDetail";
+import ProductService from "../../../_services/ProductService";
 
 export default function CategoriesTable() {
     const [categories, setCategories] = useState([]);

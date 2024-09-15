@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { TextField, Button, Grid, Box, Typography, Paper, Card, CardContent, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import OrderService from "../../../_services/OrderService";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const OrderEdit = () => {
     const [order, setOrder] = useState(null);
@@ -10,29 +15,53 @@ const OrderEdit = () => {
         orderDate: '',
         customerName: '',
         customerAddress: '',
-        orderStatus: '',
+        orderStatus: 0,
         products: [],
-        totalPrice: 0,
+        customerEmail: '',
+        customerPhone: '',
+        orderNotes: '',
     });
     const [error, setError] = useState('');
+    const [isProductEditEnabled, setIsProductEditEnabled] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const fetchedOrder = await OrderService.getOrderById(orderId);
+                const fetchedOrder = await OrderService.getOrderProductsById(orderId);
+                console.log("Fetched Order Data:", fetchedOrder);
+
+                // Extract products from orderItems
+                const products = fetchedOrder.orderItems.map(item => ({
+                    orderItemId: item.orderItemId,
+                    productId: item.productId,
+                    productName: item.product.productName,
+                    productPrice: item.product.productPrice,
+                    itemQuantity: item.quantity, // Adjusted field name
+                    imageUrl: item.product.imageUrl,
+                }));
+
                 setOrder(fetchedOrder);
                 setFormData({
-                    orderDate: new Date(fetchedOrder.orderDate).toISOString().slice(0, 10),
+                    orderDate: fetchedOrder.orderDate.split('T')[0],
                     customerName: fetchedOrder.customerName,
                     customerAddress: fetchedOrder.customerAddress,
                     orderStatus: fetchedOrder.orderStatus,
-                    products: fetchedOrder.products,
-                    totalPrice: fetchedOrder.totalPrice,
+                    customerEmail: fetchedOrder.customerEmail || "",
+                    customerPhone: fetchedOrder.customerPhone || "",
+                    orderNotes: fetchedOrder.orderNotes || "",
+                    products: products || [],
                 });
                 setIsLoading(false);
             } catch (err) {
+                console.error("Error fetching order:", err);
                 setError('Failed to fetch order data');
                 setIsLoading(false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to fetch order data.',
+                });
             }
         };
 
@@ -50,134 +79,266 @@ const OrderEdit = () => {
     const handleProductChange = (index, e) => {
         const { name, value } = e.target;
         const newProducts = [...formData.products];
-        newProducts[index] = {
-            ...newProducts[index],
-            [name]: value,
-        };
+        const updatedProduct = { ...newProducts[index], [name]: parseInt(value, 10) };
+
+        newProducts[index] = updatedProduct;
         setFormData({
             ...formData,
             products: newProducts,
         });
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await OrderService.updateOrder(orderId, formData);
-            alert('Order updated successfully');
-        } catch (err) {
-            setError('Failed to update order');
+    const handleProductRemove = async (index) => {
+        const orderItemIdToRemove = formData.products[index].orderItemId;
+
+        const confirm = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'This product will be removed from the order.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!',
+        });
+
+        if (confirm.isConfirmed) {
+            try {
+                await OrderService.updateOrderWithItems(orderId, {
+                    ...formData,
+                    products: formData.products.filter((_, i) => i !== index),
+                });
+                setFormData(prevState => ({
+                    ...prevState,
+                    products: prevState.products.filter((_, i) => i !== index),
+                }));
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Product Removed',
+                    text: 'The product was successfully removed from the order.',
+                });
+            } catch (err) {
+                console.error("Error removing product:", err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: `Failed to remove the product. ${err.response?.data?.message || err.message}`,
+                });
+            }
         }
     };
 
-    if (isLoading) return <p className="text-gray-700">Loading...</p>;
+    const handleSave = async () => {
+        const requestPayload = {
+            orderId: parseInt(orderId, 10), // Use the correct orderId from params
+            orderDate: formData.orderDate,
+            customerId: order.customerId,
+            customerName: formData.customerName || '',
+            customerAddress: formData.customerAddress || '',
+            orderStatus: formData.orderStatus || 0,
+            customerEmail: formData.customerEmail || '',
+            customerPhone: formData.customerPhone || '',
+            orderNotes: formData.orderNotes || '',
+            orderItems: formData.products.map(product => ({
+                orderItemId: product.orderItemId || 0, // Ensure orderItemId is sent, or default to 0 for new items
+                quantity: product.itemQuantity,
+                totalPrice: product.itemQuantity * product.productPrice, // Calculate totalPrice for each item
+            })),
+        };
 
-    if (error) return <p className="text-red-600">{error}</p>;
+        console.log("Request Payload:", requestPayload);
+
+        try {
+            await OrderService.updateOrderWithItems(orderId, requestPayload);
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Order updated successfully',
+            });
+            navigate(`/admin/orders/${orderId}`);
+        } catch (err) {
+            console.error("Error updating order:", err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: `Failed to update order. ${err.response?.data?.message || err.message}`,
+            });
+        }
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        handleSave();
+    };
+
+    const handleToggleProductEdit = () => {
+        setIsProductEditEnabled(!isProductEditEnabled);
+    };
+
+    const calculateTotalPrice = () => {
+        return formData.products.reduce((total, product) => {
+            return total + (product.itemQuantity * product.productPrice);
+        }, 0).toFixed(2);
+    };
+
+    if (isLoading) return <Typography variant="h6">Loading...</Typography>;
+    if (error) return <Typography variant="h6" color="error">{error}</Typography>;
 
     return (
-        <div className="bg-gray-100 p-8 rounded-lg shadow-lg max-w-4xl mx-auto border border-gray-300 mt-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Edit Order</h2>
-            <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">Order Date:</label>
-                        <input
-                            type="date"
-                            name="orderDate"
-                            value={formData.orderDate}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-gray-700 font-medium mb-2">Customer Name:</label>
-                        <input
-                            type="text"
-                            name="customerName"
-                            value={formData.customerName}
-                            onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                        />
-                    </div>
-                </div>
-                <div className="mb-6">
-                    <label className="block text-gray-700 font-medium mb-2">Customer Address:</label>
-                    <textarea
-                        name="customerAddress"
-                        value={formData.customerAddress}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                    />
-                </div>
-                <div className="mb-6">
-                    <label className="block text-gray-700 font-medium mb-2">Order Status:</label>
-                    <input
-                        type="text"
-                        name="orderStatus"
-                        value={formData.orderStatus}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                    />
-                </div>
-                <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4">Products:</h3>
-                    {formData.products.map((product, index) => (
-                        <div key={index} className="p-4 mb-4 bg-white shadow-sm rounded-lg border border-gray-200">
-                            <div className="mb-4">
-                                <label className="block text-gray-700 font-medium mb-2">Product Name:</label>
-                                <input
-                                    type="text"
-                                    name="productName"
-                                    value={product.productName}
-                                    onChange={(e) => handleProductChange(index, e)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 mb-4">
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-2">Quantity:</label>
-                                    <input
-                                        type="number"
-                                        name="itemQuantiy"
-                                        value={product.itemQuantiy}
-                                        onChange={(e) => handleProductChange(index, e)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-gray-700 font-medium mb-2">Price:</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        name="productPrice"
-                                        value={product.productPrice}
-                                        onChange={(e) => handleProductChange(index, e)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className="mb-6">
-                    <label className="block text-gray-700 font-medium mb-2">Total Price:</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="totalPrice"
-                        value={formData.totalPrice}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-150"
-                >
-                    Save Changes
-                </button>
-            </form>
-        </div>
+        <Box sx={{ mt: 8, mx: 'auto', maxWidth: '1200px', padding: 3 }}>
+            <Paper elevation={6} sx={{ p: 4, borderRadius: 2 }}>
+                <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    Edit Order
+                </Typography>
+                <form onSubmit={handleSubmit}>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Order Date"
+                                type="date"
+                                name="orderDate"
+                                value={formData.orderDate}
+                                onChange={handleChange}
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Customer Name"
+                                type="text"
+                                name="customerName"
+                                value={formData.customerName}
+                                onChange={handleChange}
+                                fullWidth
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Customer Address"
+                                type="text"
+                                name="customerAddress"
+                                value={formData.customerAddress}
+                                onChange={handleChange}
+                                fullWidth
+                                multiline
+                                rows={3}
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Customer Email"
+                                type="email"
+                                name="customerEmail"
+                                value={formData.customerEmail}
+                                onChange={handleChange}
+                                fullWidth
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Customer Phone"
+                                type="text"
+                                name="customerPhone"
+                                value={formData.customerPhone}
+                                onChange={handleChange}
+                                fullWidth
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth sx={{ mb: 2 }}>
+                                <InputLabel id="order-status-label">Order Status</InputLabel>
+                                <Select
+                                    labelId="order-status-label"
+                                    name="orderStatus"
+                                    value={formData.orderStatus}
+                                    onChange={handleChange}
+                                    fullWidth
+                                >
+                                    <MenuItem value={0}>Pending</MenuItem>
+                                    <MenuItem value={1}>Shipped</MenuItem>
+                                    <MenuItem value={2}>Rejected</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                label="Order Notes"
+                                type="text"
+                                name="orderNotes"
+                                value={formData.orderNotes}
+                                onChange={handleChange}
+                                fullWidth
+                                multiline
+                                rows={2}
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleToggleProductEdit}
+                                sx={{ mb: 2 }}
+                            >
+                                {isProductEditEnabled ? 'Disable Product Editing' : 'Enable Product Editing'}
+                            </Button>
+                        </Grid>
+                        {formData.products.map((product, index) => (
+                            <Grid item xs={12} key={index}>
+                                <Card>
+                                    <CardContent>
+                                        <Typography variant="h6">{product.productName}</Typography>
+                                        <Typography variant="body2">Price: ${product.productPrice.toFixed(2)}</Typography>
+                                        <Typography variant="body2">Image:</Typography>
+                                        <img src={product.imageUrl} alt={product.productName} style={{ width: '100px' }} />
+                                        {isProductEditEnabled && (
+                                            <>
+                                                <TextField
+                                                    label="Quantity"
+                                                    type="number"
+                                                    name="itemQuantity"
+                                                    value={product.itemQuantity}
+                                                    onChange={(e) => handleProductChange(index, e)}
+                                                    fullWidth
+                                                    sx={{ mb: 2 }}
+                                                />
+                                                <Button
+                                                    variant="contained"
+                                                    color="secondary"
+                                                    onClick={() => handleProductRemove(index)}
+                                                    startIcon={<DeleteIcon />}
+                                                    sx={{ mt: 1 }}
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ))}
+                        <Grid item xs={12}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Total Price: ${calculateTotalPrice()}</Typography>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                type="submit"
+                                startIcon={<SaveIcon />}
+                            >
+                                Save Changes
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </form>
+            </Paper>
+        </Box>
     );
 };
 

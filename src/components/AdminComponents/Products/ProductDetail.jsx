@@ -18,6 +18,7 @@ export default function ProductDetail() {
         async function fetchProduct() {
             try {
                 const data = await ProductService.getProductById(productId);
+                console.error(" data product:", data);
                 setProduct(data);
 
             } catch (error) {

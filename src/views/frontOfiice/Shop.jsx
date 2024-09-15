@@ -3,7 +3,7 @@ import Navbar from "../../components/Navbars/AuthNavbar";
 import Footer from "../../components/Footers/Footer";
 import ProductService from "../../_services/ProductService";
 import FilterSidebar from "../../components/FrontOfficeComponents/FilterSidebar";
-import ProductList from "../../components/FrontOfficeComponents/ProductList";
+import ProductList from "../../components/FrontOfficeComponents/Product/ProductList";
 
 export default function Shop() {
     const [products, setProducts] = useState([]);
@@ -18,9 +18,11 @@ export default function Shop() {
         const fetchProducts = async () => {
             try {
                 const fetchedProducts = await ProductService.getAllProducts();
-                setProducts(fetchedProducts);
-                setFilteredProducts(fetchedProducts); // Ensure filteredProducts is initialized
-                console.log("fetchedProducts",fetchedProducts)
+                // Access the products array within the $values property
+                const productsArray = fetchedProducts;
+                setProducts(productsArray);
+                setFilteredProducts(productsArray); // Ensure filteredProducts is initialized
+                console.log("fetchedProducts", fetchedProducts);
             } catch (err) {
                 setError('Failed to fetch products');
             } finally {
@@ -109,7 +111,6 @@ export default function Shop() {
                                 </p>
                             </div>
                         </section>
-
                         {/* Main Content */}
                         <div className="flex flex-col lg:flex-row gap-4 ">
                             <FilterSidebar onFilterChange={handleFilterChange}/>

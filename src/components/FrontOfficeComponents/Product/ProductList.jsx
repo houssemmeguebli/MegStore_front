@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Grid, Card, CardMedia, CardContent, Typography, Button, CardActions, Box } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import Swal from 'sweetalert2';
-import CategoryService from "../../_services/CategoryService";
+import CategoryService from "../../../_services/CategoryService";
+import {useNavigate} from "react-router-dom";
 
-// Function to add item to cart in local storage
+const ITEMS_PER_PAGE = 7;
+
 const addToCart = (item) => {
     const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
     const updatedCart = [...existingCart, item];
@@ -14,7 +16,8 @@ const addToCart = (item) => {
 const ProductList = ({ products }) => {
     const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('cart')) || []);
     const [categories, setCategories] = useState({});
-
+    const [currentPage, setCurrentPage] = useState(1);
+    const navigate = useNavigate();
     useEffect(() => {
         const fetchCategories = async () => {
             const categoryIds = [...new Set(products.map(product => product.categoryId))];
@@ -64,15 +67,27 @@ const ProductList = ({ products }) => {
         });
     };
 
+    const paginatedProducts = products.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+
+    const handlePageChange = (pageNumber) => {
+        if (pageNumber > 0 && pageNumber <= totalPages) {
+            setCurrentPage(pageNumber);
+        }
+    };
+    const handleViewDetails = (productId) => {
+        navigate(`/shop/productDetails/${productId}`);
+    };
     return (
         <div className="container mx-auto py-8" style={{ maxWidth: '1200px' }}>
             <Grid container spacing={4}>
-                {products.map((product) => {
+                {paginatedProducts.map((product) => {
                     const isProductInCart = cart.some(item => item.productId === product.productId);
 
                     return (
-                        <Grid item xs={12} key={product.productId}>
+                        <Grid item xs={12} sm={6} md={12} key={product.productId}>
                             <Card
+                                onClick={() => handleViewDetails(product.productId)}
                                 sx={{
                                     display: 'flex',
                                     flexDirection: 'row',
@@ -90,16 +105,22 @@ const ProductList = ({ products }) => {
                                 <CardMedia
                                     component="img"
                                     alt={product.productName}
-                                    image={product.imageUrl ? `https://localhost:7048/${product.imageUrl}` : 'https://via.placeholder.com/300x300'}
+                                    image={product.imageUrl ? `https://localhost:7048/${product.imageUrl}` : 'https://via.placeholder.com/250x250'}
                                     sx={{
                                         width: '250px',
                                         height: '250px',
                                         objectFit: 'cover',
                                         borderRadius: '12px',
                                         flexShrink: 0,
+                                        border: '1px solid #ddd',
+                                        transition: 'transform 0.3s ease-in-out',
+                                        '&:hover': {
+                                            transform: 'scale(1.05)',
+                                        },
                                     }}
+
                                     onError={(e) => {
-                                        e.target.src = 'https://via.placeholder.com/300x300';
+                                        e.target.src = 'https://via.placeholder.com/250x250';
                                     }}
                                 />
 
@@ -149,7 +170,7 @@ const ProductList = ({ products }) => {
                                         )}
                                     </Typography>
 
-                                    <Typography variant="h4" sx={{ color: '#007bff', fontWeight: 'bold' }}>
+                                    <Typography variant="h4" sx={{ color: '#007bff', fontWeight: 'bold', marginTop: '16px' }}>
                                         ${product.productPrice.toFixed(2)}
                                     </Typography>
 
@@ -188,6 +209,7 @@ const ProductList = ({ products }) => {
                                                     borderRadius: '4px',
                                                     fontSize: '12px',
                                                     fontWeight: 'bold',
+                                                    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
                                                 }}
                                             >
                                                 Already in Cart
@@ -200,6 +222,42 @@ const ProductList = ({ products }) => {
                     );
                 })}
             </Grid>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center mt-8">
+                <nav aria-label="Page navigation">
+                    <ul className="inline-flex -space-x-px">
+                        <li>
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100"
+                            >
+                                Previous
+                            </button>
+                        </li>
+                        {[...Array(totalPages)].map((_, index) => (
+                            <li key={index}>
+                                <button
+                                    onClick={() => handlePageChange(index + 1)}
+                                    className={`px-4 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-100 ${currentPage === index + 1 ? 'bg-gray-200' : 'bg-white'}`}
+                                >
+                                    {index + 1}
+                                </button>
+                            </li>
+                        ))}
+                        <li>
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100"
+                            >
+                                Next
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
         </div>
     );
 };

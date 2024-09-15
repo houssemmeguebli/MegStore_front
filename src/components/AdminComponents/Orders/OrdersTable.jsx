@@ -15,6 +15,7 @@ export default function OrdersTable() {
             try {
                 const data = await OrderService.getAllOrders();
                 setOrders(data);
+                console.log("data",data)
             } catch (error) {
                 console.error("Error fetching orders:", error);
             }
@@ -50,7 +51,7 @@ export default function OrdersTable() {
                 <table className="items-center w-full bg-transparent border-collapse">
                     <thead>
                     <tr>
-                        {["Order Date", "Shipped Date", "Order Status", "Customer ID", "Actions"].map((heading) => (
+                        {["Order Date", "Shipped Date", "Order Status", "totalAmount","Customer ID", "Actions"].map((heading) => (
                             <th
                                 key={heading}
                                 className="px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left bg-blueGray-50 text-blueGray-500 border-blueGray-100"
@@ -71,6 +72,9 @@ export default function OrdersTable() {
                             </td>
                             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                                 {order.orderStatus}
+                            </td>
+                            <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                                ${order.totlaAmount}
                             </td>
                             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                                 {order.customerId}

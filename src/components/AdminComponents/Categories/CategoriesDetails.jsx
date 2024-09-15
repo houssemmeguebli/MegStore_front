@@ -18,7 +18,7 @@ export default function CategoriesDetails() {
         async function fetchCategory() {
             try {
                 const data = await CategoryService.getCategoryById(categoryId);
-                setCategory(data);
+                setCategory(data.$values);
 
                 const relatedData = await ProductService.getProductsByCategory(categoryId);
                 setRelatedProducts(relatedData);

@@ -3,7 +3,7 @@ import SignatureCanvas from 'react-signature-canvas';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-const DeliveryNotePDF = ({ order, totalPrice }) => {
+const DeliveryNotePDF = ({ order, totalPrice, products }) => {
     const [signatureURL, setSignatureURL] = useState('');
     const signatureRef = useRef(null);
 
@@ -16,14 +16,22 @@ const DeliveryNotePDF = ({ order, totalPrice }) => {
         };
 
         const canvas = signatureRef.current.getCanvas();
+        // Save signature for both mouse and touch events
         canvas.addEventListener('mouseup', handleSaveSignature);
-        return () => canvas.removeEventListener('mouseup', handleSaveSignature);
+        canvas.addEventListener('touchend', handleSaveSignature);
+
+        return () => {
+            canvas.removeEventListener('mouseup', handleSaveSignature);
+            canvas.removeEventListener('touchend', handleSaveSignature);
+        };
     }, [signatureURL]);
 
     const clearSignature = () => {
         signatureRef.current.clear();
         setSignatureURL('');
     };
+
+    const productsMap = new Map(products.map(product => [product.productId, product]));
 
     const generateBonDeLivraisonPDF = () => {
         const doc = new jsPDF();
@@ -53,23 +61,28 @@ const DeliveryNotePDF = ({ order, totalPrice }) => {
         doc.text(`Order ID: ${order.orderId}`, 14, 65);
         doc.text(`Order Date: ${new Date(order.orderDate).toLocaleDateString()}`, 14, 75);
         doc.text(`Customer Name: ${order.customerName}`, 14, 85);
-        doc.text(`Customer Address: ${order.customerAddress}`, 14, 95);
-        doc.text(`Order Status: ${order.orderStatus}`, 14, 105);
-
+        doc.text(`Customer Phone: ${order.customerPhone}`, 14, 95);
+        doc.text(`Customer Address: ${order.customerAddress}`, 14, 105);
         // Line Break
         doc.line(14, 110, 196, 110);
 
-        // Products Table
-        const products = order.products.map(product => [
-            product.productName,
-            product.itemQuantiy,
-            `$${product.productPrice.toFixed(2)}`,
-            `$${(product.productPrice * product.itemQuantiy).toFixed(2)}`
-        ]);
+        // Map orderItems to products using productsMap
+        const items = order.orderItems.map(item => {
+            const product = productsMap.get(item.productId); // Retrieve product info from productsMap
+
+            return [
+                product?.productName || 'N/A',  // Product name from productsMap, fallback to 'N/A' if undefined
+                item.quantity || 0,             // Quantity from order item, fallback to 0 if undefined
+                product?.productPrice ? `$${product.productPrice.toFixed(2)}` : '$0.00',  // Product price from productsMap
+                product?.productPrice && item.quantity
+                    ? `$${(product.productPrice * item.quantity).toFixed(2)}`
+                    : '$0.00'  // Calculate total price (price * quantity)
+            ];
+        });
 
         doc.autoTable({
             head: [['Product Name', 'Quantity', 'Price', 'Total']],
-            body: products,
+            body: items,
             startY: 120,
             theme: 'grid',
             headStyles: {
@@ -84,7 +97,7 @@ const DeliveryNotePDF = ({ order, totalPrice }) => {
         // Total Price
         doc.setFontSize(12);
         doc.setTextColor(0);
-        doc.text(`Total Price: $${totalPrice.toFixed(2)}`, 14, doc.autoTable.previous.finalY + 15);
+        doc.text(`Total Price: $${totalPrice.toFixed(2)}`, 160, doc.autoTable.previous.finalY + 15);
 
         // Signature Section
         const pageHeight = doc.internal.pageSize.height;
@@ -93,9 +106,8 @@ const DeliveryNotePDF = ({ order, totalPrice }) => {
             doc.addImage(signatureURL, 'PNG', 150, pageHeight - 60, 40, 20);
             doc.text(`Date: ${todayDate}`, 150, pageHeight - 30);
         } else {
-            doc.text(' Signature:', 150, pageHeight - 60);
+            doc.text('Signature:', 150, pageHeight - 60);
             doc.text(`Date: ${todayDate}`, 150, pageHeight - 30);
-
         }
 
         // Footer
@@ -112,7 +124,7 @@ const DeliveryNotePDF = ({ order, totalPrice }) => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4"> Signature</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Signature</h2>
             <SignatureCanvas
                 ref={signatureRef}
                 canvasProps={{ width: 500, height: 200, className: 'sigCanvas border rounded-lg' }}

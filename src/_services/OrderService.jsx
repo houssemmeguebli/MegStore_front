@@ -51,8 +51,8 @@ class OrderService {
         }
     }
 
-    // Update an existing order
-    async updateOrder(orderId, orderDto) {
+    // Update an existing order with items
+    async updateOrderWithItems(orderId, orderDto) {
         try {
             const response = await axios.put(`${this.baseUrl}/${orderId}`, orderDto);
             return response.data;
@@ -71,6 +71,18 @@ class OrderService {
             throw error;
         }
     }
+
+    // Remove a product from an order
+    async removeProductFromOrder(orderId, productId) {
+        try {
+            await axios.delete(`${this.baseUrl}/${orderId}/products/${productId}`);
+        } catch (error) {
+            console.error(`Error removing product with ID ${productId} from order ${orderId}:`, error);
+            throw error;
+        }
+    }
+
+
 }
 
 export default new OrderService();

@@ -14,6 +14,7 @@ import Landing from "./views/frontOfiice/Landing.js";
 import Shop from "./views/frontOfiice/Shop";
 import Cart from "./views/frontOfiice/Cart";
 import Order from "./views/frontOfiice/Order";
+import ProductDetail from "./components/FrontOfficeComponents/Product/ProductDetail";
 
 
 
@@ -28,6 +29,7 @@ root.render(
             {/* Routes without layouts */}
             <Route path="/landing" element={<Landing />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/productDetails/:productId" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/order" element={<Order />} />
             <Route path="/" element={<Landing />} />

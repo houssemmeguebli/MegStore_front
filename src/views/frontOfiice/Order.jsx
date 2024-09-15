@@ -11,6 +11,7 @@ const Order = () => {
     const [cartItems, setCartItems] = useState([]);
     const [paymentMethod, setPaymentMethod] = useState('creditCard');
     const [editShipping, setEditShipping] = useState(false);
+    const [totalAmount, setTotalAmount] = useState(0);
     const [userData, setUserData] = useState({
         name: '',
         email: '',
@@ -18,15 +19,14 @@ const Order = () => {
         phone: '',
     });
     const [orderNotes, setOrderNotes] = useState('');
-    const [customerId, setCustomerId] = useState(7); // Default customerId, change as needed
-    const [orderId, setOrderId] = useState(null); // Initialize orderId for updating
+    const [customerId, setCustomerId] = useState(7); // Default customerId
+    const [orderId, setOrderId] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
         const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
         setCartItems(storedCart);
 
-        // Fetch user data based on customerId
         const fetchUserData = async () => {
             try {
                 const response = await UserService.getUserById(customerId);
@@ -38,59 +38,70 @@ const Order = () => {
                 });
             } catch (error) {
                 console.error('Error fetching user data:', error);
-                // Handle error, e.g., show an alert
             }
         };
 
         fetchUserData();
     }, [customerId]);
 
-    const getTotalPrice = () => {
-        return cartItems.reduce((total, item) => total + (item.productPrice || 0) * (item.quantity || 1), 0);
-    };
+    useEffect(() => {
+        const calculatedTotal = cartItems.reduce(
+            (total, item) => total + item.productPrice * (item.quantity || 1),
+            0
+        );
+        setTotalAmount(calculatedTotal);
+    }, [cartItems]);
 
     const handleFinalizeOrder = async () => {
         const orderData = {
             orderDate: new Date().toISOString(),
             shippedDate: null,
-            orderStatus: 0,
+            orderStatus: 0, // 0 = Pending
             customerId: customerId,
             customerName: userData.name,
             customerEmail: userData.email,
             customerAddress: userData.address,
             customerPhone: userData.phone,
             orderNotes: orderNotes,
-            products: cartItems.map(item => ({
+            totalAmount: totalAmount,
+            orderItems: cartItems.map(item => ({
                 productId: item.productId,
-                productName: item.productName,
-                productDescription: item.productDescription,
-                productPrice: item.productPrice,
-                imageUrl: item.imageUrl,
-                stockQuantity: item.stockQuantity,
-                dateAdded: item.dateAdded,
-                isAvailable: item.isAvailable,
-                categoryId: item.categoryId,
-                adminId: item.adminId,
-                ItemQuantiy : item.quantity,
+                quantity: item.quantity || 1,
+                unitPrice: item.productPrice,
+                totalPrice: item.productPrice * (item.quantity || 1),
             })),
-
         };
+
+        console.log('Order Data:', orderData); // Log order data for inspection
 
         try {
             const response = await OrderService.createOrder(orderData);
-            setOrderId(response.orderId); // Set the created orderId
-            await Swal.fire({
-                title: 'Order Placed',
-                text: 'Thank you for your order! You will receive a confirmation email shortly.',
-                icon: 'success',
-                confirmButtonText: 'OK',
-                background: '#fff',
-                color: '#333',
-                confirmButtonColor: '#4CAF50',
-            });
-            localStorage.removeItem('cart');
-            navigate('/shop');
+
+            if (response && response.orderId) {
+                setOrderId(response.orderId);
+
+                await Swal.fire({
+                    title: 'Order Placed',
+                    text: 'Thank you for your order! You will receive a confirmation email shortly.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    background: '#fff',
+                    color: '#333',
+                    confirmButtonColor: '#4CAF50',
+                });
+
+                localStorage.removeItem('cart');
+                navigate('/shop');
+
+                console.log('Order Created Successfully:', response); // Log order creation response
+
+            } else {
+                throw new Error('Order creation failed, no orderId returned');
+            }
         } catch (error) {
+            console.error("Error placing order:", error);
+            console.error("Error details:", error.response ? error.response.data : error.message);
+
             await Swal.fire({
                 title: 'Order Failed',
                 text: 'There was an error placing your order. Please try again later.',
@@ -103,10 +114,14 @@ const Order = () => {
         }
     };
 
+
+
+
+
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setUserData((prevUser) => ({
-            ...prevUser,
+        setUserData(prev => ({
+            ...prev,
             [name]: value,
         }));
     };
@@ -119,7 +134,7 @@ const Order = () => {
                     customerEmail: userData.email,
                     customerAddress: userData.address,
                     customerPhone: userData.phone,
-                    orderNotes: '',
+                    orderNotes: orderNotes,
                 };
                 await OrderService.updateOrder(orderId, updatedOrderData);
                 await Swal.fire({
@@ -141,7 +156,6 @@ const Order = () => {
                     color: '#333',
                     confirmButtonColor: '#f44336',
                 });
-                console.error("Error updating order:", error.response?.data || error.message);
             }
         }
         setEditShipping(!editShipping);
@@ -152,7 +166,6 @@ const Order = () => {
             <Navbar />
             <Container maxWidth="lg" sx={{ mt: '7%', mb: '10%' }}>
                 <Paper elevation={3} sx={{ padding: 3, mb: 4 }}>
-                    {/* Checkout Banner */}
                     <Paper elevation={3} sx={{ padding: 2, backgroundColor: '#f5f5f5', mb: 4, textAlign: 'center' }}>
                         <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                             Complete Your Checkout
@@ -162,10 +175,8 @@ const Order = () => {
                         </Typography>
                     </Paper>
 
-                    {/* Order Summary (Sticky) */}
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={7}>
-                            {/* Editable User Information Section */}
                             <Paper elevation={2} sx={{ padding: 3, mb: 4 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Shipping Information</Typography>
@@ -191,7 +202,6 @@ const Order = () => {
                                 )}
                             </Paper>
 
-                            {/* Order Notes Section */}
                             <Paper elevation={2} sx={{ padding: 3, mb: 4 }}>
                                 <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Order Notes</Typography>
                                 <Divider sx={{ mb: 2 }} />
@@ -207,33 +217,27 @@ const Order = () => {
                             </Paper>
                         </Grid>
 
-                        {/* Order Summary */}
                         <Grid item xs={12} md={5}>
-                            <Paper elevation={2} sx={{ padding: 3, position: 'sticky', top: '10%', mb: 4 }}>
-                                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>Order Summary</Typography>
-                                <Divider sx={{ mb: 2 }} />
-                                {cartItems.length === 0 ? (
-                                    <Typography variant="body1" color="textSecondary">Your cart is empty.</Typography>
-                                ) : (
-                                    <Grid container spacing={2}>
-                                        {cartItems.map(item => (
-                                            <Grid item xs={12} key={item.productId}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <img src={`https://localhost:7048/${item.imageUrl}`} alt={item.productName} style={{ width: '50px', height: '50px' }} />
-                                                    <Typography variant="body1">{item.productName}</Typography>
-                                                    <Typography variant="body1">${item.productPrice.toFixed(2)}</Typography>
-                                                    <Typography variant="body1">Qty: {item.quantity}</Typography>
-                                                </Box>
-                                            </Grid>
-                                        ))}
-                                    </Grid>
-                                )}
+                            <Paper elevation={2} sx={{ padding: 3, position: 'sticky', top: '10%' }}>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Order Summary</Typography>
                                 <Divider sx={{ my: 2 }} />
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Typography variant="h6">Total:</Typography>
-                                    <Typography variant="h6">${getTotalPrice().toFixed(2)}</Typography>
+
+                                <Box sx={{ mb: 3 }}>
+                                    {cartItems.map((item) => (
+                                        <Box key={item.productId} sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                                            <Typography>{item.productName} (x{item.quantity})</Typography>
+                                            <Typography>${(item.productPrice * item.quantity).toFixed(2)}</Typography>
+                                        </Box>
+                                    ))}
                                 </Box>
-                                <Button variant="contained" color="primary" fullWidth sx={{ mt: 2 }} onClick={handleFinalizeOrder}>
+
+                                <Divider sx={{ mb: 2 }} />
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Total:</Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>${totalAmount.toFixed(2)}</Typography>
+                                </Box>
+
+                                <Button variant="contained" color="primary" fullWidth sx={{ mt: 3 }} onClick={handleFinalizeOrder}>
                                     Place Order
                                 </Button>
                             </Paper>
