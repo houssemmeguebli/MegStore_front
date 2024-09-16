@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Container, Typography, CircularProgress, Grid, Box, MenuItem, FormControl, InputLabel, Select, Paper } from '@mui/material';
+import {
+    TextField, Button, Container, Typography, CircularProgress, Grid, Box, MenuItem, FormControl, InputLabel, Select, Paper
+} from '@mui/material';
 import ProductService from '../../../_services/ProductService';
 import CategoryService from '../../../_services/CategoryService';
 
@@ -10,12 +12,14 @@ const ProductForm = () => {
         productPrice: '',
         stockQuantity: '',
         isAvailable: true,
-        categoryId: '', // Initialize as empty string
+        categoryId: '',
         adminId: 2,
         dateAdded: new Date().toISOString(),
+        ItemQuantiy: 0,  // Corrected field name here
     });
+
     const [categories, setCategories] = useState([]);
-    const [imageFile, setImageFile] = useState(null);
+    const [imageFiles, setImageFiles] = useState([]); // Changed to handle multiple files
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -24,9 +28,7 @@ const ProductForm = () => {
         async function fetchCategories() {
             try {
                 const categoryData = await CategoryService.getAllCategories();
-                // Log the fetched categories to debug
                 console.log('Fetched categories:', categoryData);
-                // Check if categoryData is an array
                 if (Array.isArray(categoryData)) {
                     setCategories(categoryData);
                 } else {
@@ -40,27 +42,24 @@ const ProductForm = () => {
     }, []);
 
     const handleChange = (e) => {
+        console.log(`Field ${e.target.name} changed to: ${e.target.value}`);
         setProduct({
             ...product,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleSwitchChange = (e) => {
-        setProduct({
-            ...product,
-            [e.target.name]: e.target.checked
+            [e.target.name]: e.target.value,
         });
     };
 
     const handleFileChange = (e) => {
-        setImageFile(e.target.files[0]);
+        console.log('Selected files:', e.target.files);
+        // Convert FileList to Array and update state
+        setImageFiles(Array.from(e.target.files));
     };
 
     const handleCategoryChange = (e) => {
+        console.log('Category changed to:', e.target.value);
         setProduct({
             ...product,
-            categoryId: e.target.value
+            categoryId: e.target.value,
         });
     };
 
@@ -69,23 +68,26 @@ const ProductForm = () => {
         setLoading(true);
         setError('');
         setSuccess(false);
+        console.log('Submitting product:', product);
 
         try {
-            const response = await ProductService.createProduct(product, imageFile);
+            console.log("product:",product);
+            console.log("imageFiles:",imageFiles);
+            const response = await ProductService.createProduct(product, imageFiles);
             console.log('Product added:', response);
             setSuccess(true);
-            // Reset the form after successful submission
             setProduct({
                 productName: '',
                 productDescription: '',
                 productPrice: '',
                 stockQuantity: '',
                 isAvailable: true,
-                categoryId: '', // Reset categoryId
+                categoryId: '',
                 adminId: 2,
                 dateAdded: new Date().toISOString(),
+                ItemQuantiy: '',  // Reset this field too
             });
-            setImageFile(null);
+            setImageFiles([]); // Clear selected files
         } catch (error) {
             console.error('Error adding product:', error);
             setError('Failed to add product. Please try again.');
@@ -95,7 +97,6 @@ const ProductForm = () => {
     };
 
     return (
-
         <Container sx={{ marginTop: '10%' }}>
             <Paper elevation={3} sx={{ padding: '24px' }}>
                 <Typography variant="h4" gutterBottom>Add Product</Typography>
@@ -104,7 +105,7 @@ const ProductForm = () => {
                 <Box component="form" sx={{ mt: 2 }} onSubmit={handleSubmit} noValidate autoComplete="off">
                     <Grid container spacing={2} alignItems="center">
                         {/* Row 1: Product Name and Product Price */}
-                        <Grid item xs={12} sm={3}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 name="productName"
                                 label="Product Name"
@@ -115,7 +116,7 @@ const ProductForm = () => {
                                 variant="outlined"
                             />
                         </Grid>
-                        <Grid item xs={12} sm={3}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 name="productPrice"
                                 label="Product Price (USD)"
@@ -127,8 +128,9 @@ const ProductForm = () => {
                                 variant="outlined"
                             />
                         </Grid>
+
                         {/* Row 2: Stock Quantity */}
-                        <Grid item xs={12} sm={3}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 name="stockQuantity"
                                 label="Stock Quantity"
@@ -140,8 +142,9 @@ const ProductForm = () => {
                                 variant="outlined"
                             />
                         </Grid>
+
                         {/* Row 3: Category Dropdown */}
-                        <Grid item xs={12} sm={3}>
+                        <Grid item xs={12} sm={6}>
                             <FormControl fullWidth variant="outlined">
                                 <InputLabel id="category-select-label">Category</InputLabel>
                                 <Select
@@ -152,17 +155,15 @@ const ProductForm = () => {
                                     label="Category"
                                     required
                                 >
-                                    <MenuItem value="">
-                                        <em>None</em>
-                                    </MenuItem>
                                     {categories.map((category) => (
                                         <MenuItem key={category.categoryId} value={category.categoryId}>
-                                            {category.categorydName}
+                                            {category.categorydName} {/* Corrected typo */}
                                         </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
                         </Grid>
+
                         {/* Row 4: Product Description */}
                         <Grid item xs={12} sm={8}>
                             <TextField
@@ -172,27 +173,37 @@ const ProductForm = () => {
                                 value={product.productDescription}
                                 onChange={handleChange}
                                 multiline
-                                rows={2}
+                                rows={3}
                                 variant="outlined"
                             />
                         </Grid>
                         {/* Row 5: Image Upload */}
                         <Grid item xs={12} sm={4}>
                             <Button variant="contained" component="label" fullWidth>
-                                Upload Product Image
-                                <input type="file" hidden onChange={handleFileChange} accept="image/*" />
+                                Upload Product Images
+                                <input
+                                    type="file"
+                                    hidden
+                                    onChange={handleFileChange}
+                                    accept="image/*"
+                                    multiple // Allow multiple file selections
+                                />
                             </Button>
-                            {imageFile && <Typography variant="body2">{imageFile.name}</Typography>}
+                            {imageFiles.length > 0 && (
+                                <Typography variant="body2">
+                                    {imageFiles.map(file => file.name).join(', ')}
+                                </Typography>
+                            )}
                         </Grid>
+
                         {/* Submit Button */}
-                        <Grid item xs={12} sm={6}>
+                        <Grid item xs={12} >
                             <Button
                                 variant="contained"
                                 color="primary"
                                 type="submit"
                                 fullWidth
                                 disabled={loading}
-                                sx={{textAlign:'Center'}}
                             >
                                 {loading ? <CircularProgress size={18} /> : 'Add Product'}
                             </Button>

@@ -1,53 +1,85 @@
 import React, { useEffect, useState } from "react";
-import { TextField, Button, Typography, CircularProgress, Grid, Switch, FormControlLabel, Box, Paper } from "@mui/material";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import {
+    TextField, Button, Typography, CircularProgress, Grid, Switch,
+    FormControlLabel, Box, Paper, IconButton
+} from "@mui/material";
+import { useParams, useNavigate } from "react-router-dom";
 import ProductService from "../../../_services/ProductService";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function ProductDetail() {
     const { productId } = useParams();
     const navigate = useNavigate();
-    const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-    const [imageFile, setImageFile] = useState(null);
-    const [imagePreview, setImagePreview] = useState('');
+    const [imageFiles, setImageFiles] = useState([]);
+    const [imagePreviews, setImagePreviews] = useState([]);
+    const [deletedImages, setDeletedImages] = useState([]);
+    const [product, setProduct] = useState({
+        productName: '',
+        productPrice: '',
+        stockQuantity: '',
+        productDescription: '',
+        isAvailable: false,
+        imageUrls: [],
+        dateAdded: '',
+    });
 
     useEffect(() => {
         async function fetchProduct() {
+            setLoading(true);
             try {
                 const data = await ProductService.getProductById(productId);
-                console.error(" data product:", data);
                 setProduct(data);
-
+                const previews = data.imageUrls.map(url => `https://localhost:7048/${url}`);
+                setImagePreviews(previews);
             } catch (error) {
                 console.error("Error fetching product:", error);
                 setError("Failed to fetch product details.");
+            } finally {
+                setLoading(false);
             }
         }
 
         fetchProduct();
     }, [productId]);
 
-    const handleChange = (e) => {
-        setProduct({
-            ...product,
-            [e.target.name]: e.target.value
-        });
+    const handleFileChange = (e) => {
+        const newFiles = Array.from(e.target.files);
+        setImageFiles(newFiles);
+
+        const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+        setImagePreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setProduct(prevProduct => ({
+            ...prevProduct,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+    };
+
+    const handleImageDelete = (index) => {
+        const imageToDelete = product.imageUrls[index];
+        if (imageToDelete) {
+            setDeletedImages(prevDeletedImages => [...prevDeletedImages, imageToDelete]);
+            setProduct(prevProduct => ({
+                ...prevProduct,
+                imageUrls: prevProduct.imageUrls.filter((_, i) => i !== index),
+            }));
+        }
     };
 
     const handleSwitchChange = (e) => {
-        setProduct({
-            ...product,
-            [e.target.name]: e.target.checked
-        });
-    };
-
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        setImageFile(file);
-        setImagePreview(URL.createObjectURL(file)); // Set the preview URL
+        setProduct(prevProduct => ({
+            ...prevProduct,
+            [e.target.name]: e.target.checked,
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -57,38 +89,59 @@ export default function ProductDetail() {
         setSuccess(false);
 
         try {
-            const response = await ProductService.updateProduct(productId, product, imageFile);
+            const formData = new FormData();
+            formData.append('ProductName', product.productName);
+            formData.append('ProductPrice', product.productPrice);
+            formData.append('StockQuantity', product.stockQuantity);
+            formData.append('ProductDescription', product.productDescription);
+            formData.append('IsAvailable', product.isAvailable);
+
+            if (deletedImages.length > 0) {
+                formData.append('DeletedImages', JSON.stringify(deletedImages));
+            }
+
+            imageFiles.forEach(file => {
+                formData.append('ImageFiles', file);
+            });
+
+            await ProductService.updateProduct(productId, formData,imageFiles);
+
             setSuccess(true);
             setError('');
-            setImageFile(null);
-            setImagePreview(''); // Clear preview
+            setImageFiles([]);
+            setImagePreviews([]);
+            setDeletedImages([]);
             navigate('/admin/products');
         } catch (error) {
-            setError("Failed to update product. Please try again.");
-            setSuccess(false);
+            console.error("Error updating product:", error.response?.data || error.message);
+            setError(error.response?.data?.title || "Failed to update product. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
-    if (!product) {
+    if (loading && !product) {
         return (
             <div className="flex justify-center items-center h-screen">
-                <div className="text-center text-lg font-semibold">Loading...</div>
+                <CircularProgress />
             </div>
         );
     }
 
-    const renderStars = (rating) => {
-        const stars = [];
-        for (let i = 1; i <= 5; i++) {
-            stars.push(
-                i <= rating
-                    ? <FaStar key={i} className="text-yellow-500" />
-                    : <FaStarHalfAlt key={i} className="text-yellow-500" />
-            );
-        }
-        return stars;
+    if (!product) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="text-center text-lg font-semibold">No product found</div>
+            </div>
+        );
+    }
+
+    const carouselSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
     };
 
     return (
@@ -99,37 +152,54 @@ export default function ProductDetail() {
                 {success && <Typography color="primary" className="mb-4">Product updated successfully!</Typography>}
                 <Box component="form" className="mt-4" onSubmit={handleSubmit} noValidate autoComplete="off">
                     <Grid container spacing={4}>
-                        {/* Product Image */}
-                        <Grid item xs={12} sm={6} className="flex justify-center mb-6">
-                            <img
-                                src={imagePreview || `https://localhost:7048/${product.imageUrl}`}
-                                alt={product.productName}
-                                className="w-full max-w-lg h-auto object-cover rounded-lg shadow-md"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = "https://via.placeholder.com/300x400";
-                                }}
-                            />
+                        <Grid item xs={12} sm={6} className="mb-6">
+                            <Slider {...carouselSettings}>
+                                {product.imageUrls.map((url, index) => (
+                                    <div key={url} className="relative">
+                                        <img
+                                            src={`https://localhost:7048/${url}`}
+                                            alt={`Product Image ${index}`}
+                                            className="w-full h-auto object-cover rounded-lg shadow-md"
+                                            onError={(e) => {
+                                                e.target.onerror = null;
+                                                e.target.src = "https://via.placeholder.com/300x400";
+                                            }}
+                                        />
+                                        <IconButton
+                                            color="error"
+                                            className="absolute top-2 right-2"
+                                            onClick={() => handleImageDelete(index)}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </div>
+                                ))}
+                                {imagePreviews.map((preview, index) => (
+                                    <div key={`preview-${index}`} className="relative">
+                                        <img
+                                            src={preview}
+                                            alt={`Image Preview ${index}`}
+                                            className="w-full h-auto object-cover rounded-lg shadow-md"
+                                        />
+                                    </div>
+                                ))}
+                            </Slider>
                         </Grid>
 
-                        {/* Product Details */}
                         <Grid item xs={12} sm={6}>
                             <Grid container spacing={4}>
-                                {/* Product Name */}
                                 <Grid item xs={12}>
                                     <TextField
                                         name="productName"
                                         label="Product Name"
                                         fullWidth
                                         value={product.productName}
-                                        onChange={handleChange}
+                                        onChange={handleInputChange}
                                         required
                                         variant="outlined"
                                         className="mb-4"
                                     />
                                 </Grid>
-
-                                {/* Product Price */}
                                 <Grid item xs={12}>
                                     <TextField
                                         name="productPrice"
@@ -137,14 +207,12 @@ export default function ProductDetail() {
                                         type="number"
                                         fullWidth
                                         value={product.productPrice}
-                                        onChange={handleChange}
+                                        onChange={handleInputChange}
                                         required
                                         variant="outlined"
                                         className="mb-4"
                                     />
                                 </Grid>
-
-                                {/* Stock Quantity */}
                                 <Grid item xs={12}>
                                     <TextField
                                         name="stockQuantity"
@@ -152,29 +220,25 @@ export default function ProductDetail() {
                                         type="number"
                                         fullWidth
                                         value={product.stockQuantity}
-                                        onChange={handleChange}
+                                        onChange={handleInputChange}
                                         required
                                         variant="outlined"
                                         className="mb-4"
                                     />
                                 </Grid>
-
-                                {/* Product Description */}
                                 <Grid item xs={12}>
                                     <TextField
                                         name="productDescription"
                                         label="Product Description"
                                         fullWidth
                                         value={product.productDescription}
-                                        onChange={handleChange}
+                                        onChange={handleInputChange}
                                         multiline
                                         rows={4}
                                         variant="outlined"
                                         className="mb-4"
                                     />
                                 </Grid>
-
-                                {/* Availability and Date Added */}
                                 <Grid item xs={12} className="flex items-center justify-between">
                                     <FormControlLabel
                                         control={
@@ -191,17 +255,17 @@ export default function ProductDetail() {
                                         <strong>Date Added:</strong> {new Date(product.dateAdded).toLocaleDateString()}
                                     </Typography>
                                 </Grid>
-
-                                {/* Image Upload */}
                                 <Grid item xs={12}>
                                     <Button variant="contained" component="label" fullWidth>
-                                        Upload Product Image
-                                        <input type="file" hidden onChange={handleFileChange} accept="image/*" />
+                                        Upload Product Images
+                                        <input type="file" hidden multiple onChange={handleFileChange} accept="image/*" />
                                     </Button>
-                                    {imageFile && <Typography variant="body2" className="mt-2">{imageFile.name}</Typography>}
+                                    {imageFiles.length > 0 && (
+                                        <Typography variant="body2" className="mt-2 text-green-500">
+                                            {imageFiles.length} new image(s) added.
+                                        </Typography>
+                                    )}
                                 </Grid>
-
-                                {/* Submit Button */}
                                 <Grid item xs={12}>
                                     <Button
                                         variant="contained"
@@ -209,9 +273,8 @@ export default function ProductDetail() {
                                         type="submit"
                                         fullWidth
                                         disabled={loading}
-                                        size="large"
                                     >
-                                        {loading ? <CircularProgress size={24} /> : 'Save '}
+                                        {loading ? <CircularProgress size={24} /> : "Update Product"}
                                     </Button>
                                 </Grid>
                             </Grid>
@@ -219,7 +282,6 @@ export default function ProductDetail() {
                     </Grid>
                 </Box>
             </Paper>
-
         </Box>
     );
 }

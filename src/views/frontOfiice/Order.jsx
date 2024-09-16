@@ -63,7 +63,7 @@ const Order = () => {
             customerAddress: userData.address,
             customerPhone: userData.phone,
             orderNotes: orderNotes,
-            totalAmount: totalAmount,
+            totlaAmount: totalAmount,
             orderItems: cartItems.map(item => ({
                 productId: item.productId,
                 quantity: item.quantity || 1,

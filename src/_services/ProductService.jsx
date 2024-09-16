@@ -29,8 +29,7 @@ class ProductService {
         }
     }
 
-    // Create a new product with image upload
-    async createProduct(productDto, imageFile) {
+    async createProduct(productDto, imageFiles) {
         try {
             const formData = new FormData();
 
@@ -39,9 +38,11 @@ class ProductService {
                 formData.append(key, productDto[key]);
             }
 
-            // Append the image file if it exists
-            if (imageFile) {
-                formData.append('imageFile', imageFile);
+            // Append each image file if they exist
+            if (imageFiles && imageFiles.length > 0) {
+                for (let i = 0; i < imageFiles.length; i++) {
+                    formData.append('imageFiles', imageFiles[i]);
+                }
             }
 
             const response = await axios.post(`${this.baseUrl}`, formData, {
@@ -57,10 +58,30 @@ class ProductService {
         }
     }
 
+
+
     // Update an existing product
-    async updateProduct(productId, productDto) {
+    async updateProduct(productId, productDto, imageFiles) {
         try {
-            await axios.put(`${this.baseUrl}/${productId}`, productDto);
+            // Create a new FormData instance
+            const formData = new FormData();
+
+            // Append productDto as a JSON string
+            formData.append('productDto', JSON.stringify(productDto));
+
+            // Append each image file
+            if (imageFiles && imageFiles.length > 0) {
+                imageFiles.forEach((file, index) => {
+                    formData.append('imageFiles', file);
+                });
+            }
+
+            // Send the PUT request with FormData
+            await axios.put(`${this.baseUrl}/${productId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
         } catch (error) {
             console.error(`Error updating product with ID ${productId}:`, error);
             throw error;
@@ -76,6 +97,16 @@ class ProductService {
             throw error;
         }
     }
+    async getProductsByCategoryId(categoryId){
+        try {
+            const response = await axios.get(`${this.baseUrl}/category/${categoryId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching product with categoryId ${categoryId}:`, error);
+            throw error;
+        }
+    }
+
 }
 
 export default new ProductService();
