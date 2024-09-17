@@ -211,7 +211,12 @@ const OrderDetails = () => {
                                                 <TableRow key={item.orderItemId}>
                                                     <TableCell>
                                                         <Box display="flex" alignItems="center">
-                                                            <img src={product?.imageUrl} alt={product?.productName} className="w-16 h-16 object-cover mr-4" />
+
+                                                            <img
+                                                                src={product.imageUrls ? `https://localhost:7048/${product.imageUrls[0]}` : 'https://via.placeholder.com/64x64'}
+                                                                alt={product?.productName}
+                                                                className="w-16 h-16 object-cover mr-4"
+                                                            />
                                                             <Typography variant="body1" className="text-gray-800">{product?.productName}</Typography>
                                                         </Box>
                                                     </TableCell>

@@ -15,6 +15,7 @@ import Shop from "./views/frontOfiice/Shop";
 import Cart from "./views/frontOfiice/Cart";
 import Order from "./views/frontOfiice/Order";
 import ProductDetail from "./components/FrontOfficeComponents/Product/ProductDetail";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 

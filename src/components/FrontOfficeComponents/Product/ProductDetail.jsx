@@ -1,21 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-    Grid, Card, CardMedia, CardContent, Typography, Button, Box, CircularProgress, Divider
+    Grid, Card, CardMedia, CardContent, Typography, Button, Box, CircularProgress, Divider,
+    IconButton, Dialog, DialogContent, DialogTitle
 } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import { Share } from '@mui/icons-material';
 import CategoryService from "../../../_services/CategoryService";
 import ProductService from "../../../_services/ProductService";
 import Navbar from "../../Navbars/AuthNavbar";
 import Footer from "../../Footers/Footer";
-import Swal from 'sweetalert2'; // Use SweetAlert2 for better alerts
-
+import Swal from 'sweetalert2';
+import { FacebookShareButton, TwitterShareButton, WhatsappShareButton } from 'react-share';
+import { Carousel } from 'react-bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 const ProductDetail = () => {
     const { productId } = useParams();
     const [product, setProduct] = useState(null);
     const [categoryName, setCategoryName] = useState('');
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isInCart, setIsInCart] = useState(false);
+    const [openImageDialog, setOpenImageDialog] = useState(false);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -25,12 +30,14 @@ const ProductDetail = () => {
                     setProduct(productData);
                     if (productData.categoryId) {
                         const category = await CategoryService.getCategoryById(productData.categoryId);
-                        setCategoryName(category.categoryName);
+                        setCategoryName(category.categorydName); // Fixed typo
 
                         // Fetch related products by category
                         const related = await ProductService.getProductsByCategoryId(productData.categoryId);
                         setRelatedProducts(related.filter(p => p.productId !== productId)); // Exclude current product
                     }
+                    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+                    setIsInCart(cartItems.some(item => item.productId === productId));
                 }
             } catch (error) {
                 console.error('Failed to fetch product details', error);
@@ -46,6 +53,7 @@ const ProductDetail = () => {
         const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
         const updatedCart = [...existingCart, product];
         localStorage.setItem('cart', JSON.stringify(updatedCart));
+        setIsInCart(true);
         Swal.fire({
             title: 'Added to Cart!',
             text: `${product.productName} has been added to your cart.`,
@@ -54,6 +62,9 @@ const ProductDetail = () => {
             confirmButtonColor: '#007bff',
         });
     };
+
+    const handleOpenImageDialog = () => setOpenImageDialog(true);
+    const handleCloseImageDialog = () => setOpenImageDialog(false);
 
     if (loading) return (
         <div className="flex justify-center items-center min-h-screen">
@@ -67,31 +78,108 @@ const ProductDetail = () => {
         <>
             <Navbar />
             <main className="py-16 px-4 sm:px-8 lg:px-16 bg-gray-50">
-                {/* Product Details Card with Image on Left and Details on Right */}
-                <Box sx={{ display: 'flex', justifyContent: 'center' ,marginTop:"10%" }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
                     <Card sx={{
+                        margin: '7%',
                         display: 'flex',
                         flexDirection: { xs: 'column', md: 'row' },
                         borderRadius: '12px',
                         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-                        maxWidth: '900px',
+                        maxWidth: '1200px',
                         width: '100%',
+                        overflow: 'hidden',
                     }}>
-                        <CardMedia
-                            component="img"
-                            alt={product.productName}
-                            image={product.imageUrl ? `https://localhost:7048/${product.imageUrl}` : 'https://via.placeholder.com/450x450'}
-                            sx={{
-                                width: { xs: '100%', md: '50%' },
-                                height: 'auto',
-                                objectFit: 'cover',
-                                borderRadius: { xs: '12px 12px 0 0', md: '12px 0 0 12px' },
-                            }}
-                            onError={(e) => {
-                                e.target.src = 'https://via.placeholder.com/450x450';
-                            }}
-                        />
-                        <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 3, width: '50%' }}>
+                        <Box sx={{ flex: 1, position: 'relative' }}>
+                            <Carousel
+                                autoPlay={false}
+                                indicators={false}
+                                controls
+                                interval={null}
+                                slide
+                                style={{ height: '400px' }} // Set the height of the carousel
+                            >
+                                {product.imageUrls && product.imageUrls.length > 0 ? (
+                                    product.imageUrls.map((url, index) => (
+                                        <Carousel.Item key={index}>
+                                            <CardMedia
+                                                component="img"
+                                                alt={product.productName}
+                                                image={`https://localhost:7048/${url}`}
+                                                sx={{
+                                                    height: '100%',
+                                                    width: '100%',
+                                                    objectFit: 'cover',
+                                                    borderRadius: '12px 12px 0 0',
+                                                    cursor: 'pointer',
+                                                }}
+                                                onClick={handleOpenImageDialog}
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/450x450';
+                                                }}
+                                            />
+                                        </Carousel.Item>
+                                    ))
+                                ) : (
+                                    <Carousel.Item>
+                                        <CardMedia
+                                            component="img"
+                                            alt={product.productName}
+                                            image='https://via.placeholder.com/450x450'
+                                            sx={{
+                                                height: '100%',
+                                                width: '100%',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px 12px 0 0',
+                                            }}
+                                        />
+                                    </Carousel.Item>
+                                )}
+                            </Carousel>
+                            <Dialog open={openImageDialog} onClose={handleCloseImageDialog}>
+                                <DialogTitle>Product Images</DialogTitle>
+                                <DialogContent>
+                                    <Carousel
+                                        autoPlay={false}
+                                        indicators={false}
+                                        controls
+                                        interval={null}
+                                        slide
+                                        style={{ height: '400px' }} // Set the height of the carousel
+                                    >
+                                        {product.imageUrls && product.imageUrls.length > 0 ? (
+                                            product.imageUrls.map((url, index) => (
+                                                <Carousel.Item key={index}>
+                                                    <CardMedia
+                                                        component="img"
+                                                        alt={product.productName}
+                                                        image={`https://localhost:7048/${url}`}
+                                                        sx={{
+                                                            height: '100%',
+                                                            width: '100%',
+                                                            objectFit: 'contain',
+                                                        }}
+                                                    />
+                                                </Carousel.Item>
+                                            ))
+                                        ) : (
+                                            <Carousel.Item>
+                                                <CardMedia
+                                                    component="img"
+                                                    alt={product.productName}
+                                                    image='https://via.placeholder.com/450x450'
+                                                    sx={{
+                                                        height: '100%',
+                                                        width: '100%',
+                                                        objectFit: 'contain',
+                                                    }}
+                                                />
+                                            </Carousel.Item>
+                                        )}
+                                    </Carousel>
+                                </DialogContent>
+                            </Dialog>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', p: 3, flex: 2 }}>
                             <CardContent>
                                 <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#333' }}>
                                     {product.productName}
@@ -122,7 +210,7 @@ const ProductDetail = () => {
                                     variant="contained"
                                     color="primary"
                                     onClick={handleAddToCart}
-                                    disabled={!product.isAvailable} // Disable if not available
+                                    disabled={!product.isAvailable || isInCart} // Disable if not available or already in cart
                                     sx={{
                                         textTransform: 'none',
                                         py: 1.5,
@@ -133,8 +221,32 @@ const ProductDetail = () => {
                                         cursor: product.isAvailable ? 'pointer' : 'not-allowed',
                                     }}
                                 >
-                                    {product.isAvailable ? 'Add to Cart' : 'Unavailable'}
+                                    {isInCart ? 'Already in Cart' : product.isAvailable ? 'Add to Cart' : 'Unavailable'}
                                 </Button>
+
+                                {/* Social Share Buttons */}
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography variant="body2" sx={{ mb: 1 }}>
+                                        Share this product:
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                        <FacebookShareButton url={window.location.href}>
+                                            <IconButton>
+                                                <Share />
+                                            </IconButton>
+                                        </FacebookShareButton>
+                                        <TwitterShareButton url={window.location.href}>
+                                            <IconButton>
+                                                <Share />
+                                            </IconButton>
+                                        </TwitterShareButton>
+                                        <WhatsappShareButton url={window.location.href}>
+                                            <IconButton>
+                                                <Share />
+                                            </IconButton>
+                                        </WhatsappShareButton>
+                                    </Box>
+                                </Box>
                             </CardContent>
                         </Box>
                     </Card>
@@ -146,7 +258,7 @@ const ProductDetail = () => {
                 {/* Related Products Section */}
                 {relatedProducts.length > 0 && (
                     <Box mt={8}>
-                        <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: '#333', mb: 4  }}>
+                        <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: '#333', mb: 4 }}>
                             You might also like
                         </Typography>
                         <Grid container spacing={4}>
@@ -157,7 +269,7 @@ const ProductDetail = () => {
                                         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
                                         transition: 'transform 0.3s',
                                         '&:hover': {
-                                            transform: 'translateY(-5px)', // Adds a hover effect
+                                            transform: 'translateY(-5px)',
                                         },
                                     }}>
                                         <CardMedia
@@ -181,7 +293,7 @@ const ProductDetail = () => {
                                                 variant="outlined"
                                                 color="primary"
                                                 fullWidth
-                                                onClick={() => window.location.href = `/products/${relatedProduct.productId}`}
+                                                onClick={() => window.location.href = `/shop/productDetails/${relatedProduct.productId}`}
                                                 sx={{
                                                     textTransform: 'none',
                                                     borderColor: '#007bff',

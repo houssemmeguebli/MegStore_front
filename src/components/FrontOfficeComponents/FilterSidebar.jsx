@@ -1,22 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import CategoryService from "../../_services/CategoryService";
-import { Slider, Typography } from "@mui/material";
+import { Slider, Typography, Switch, Divider } from "@mui/material";
 
 const FilterSidebar = ({ onFilterChange }) => {
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [priceRange, setPriceRange] = useState([0, 1000]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [ratings, setRatings] = useState([0, 5]); // Example range: 0 to 5 stars
-    const [selectedRating, setSelectedRating] = useState([]);
+    const [isAvailable, setIsAvailable] = useState(false);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const categoryList = await CategoryService.getAllCategories();
-                // Assuming each category object has a `name` property
-                const uniqueCategories = [...new Set(categoryList.map(cat => cat.categorydName))];
-                setCategories(uniqueCategories);
+                setCategories(categoryList);
             } catch (err) {
                 console.error('Failed to fetch categories:', err);
             }
@@ -25,46 +22,73 @@ const FilterSidebar = ({ onFilterChange }) => {
         fetchCategories();
     }, []);
 
-    const handleCategoryChange = (category) => {
-        setSelectedCategories(prevSelectedCategories => {
-            const updatedCategories = prevSelectedCategories.includes(category)
-                ? prevSelectedCategories.filter(c => c !== category)
-                : [...prevSelectedCategories, category];
+    // Synchronize filter changes
+    const updateFilters = (newFilters = {}) => {
+        onFilterChange({
+            categories: selectedCategories,
+            priceRange: priceRange,
+            isAvailable: isAvailable,
+            ...newFilters,
+        });
+    };
 
-            onFilterChange({ categories: updatedCategories, priceRange, rating: selectedRating });
+    const handleCategoryChange = (categoryId) => {
+        setSelectedCategories(prevSelectedCategories => {
+            const updatedCategories = prevSelectedCategories.includes(categoryId)
+                ? prevSelectedCategories.filter(id => id !== categoryId)
+                : [...prevSelectedCategories, categoryId];
+            updateFilters({ categories: updatedCategories });
             return updatedCategories;
         });
     };
 
     const handlePriceRangeChange = (event, newValue) => {
         setPriceRange(newValue);
-        onFilterChange({ categories: selectedCategories, priceRange: newValue, rating: selectedRating });
+        updateFilters({ priceRange: newValue });
     };
 
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
+    const handleAvailabilityChange = (event) => {
+        setIsAvailable(event.target.checked);
+        updateFilters({ isAvailable: event.target.checked });
+    };
 
     const filteredCategories = categories.filter(cat =>
-        cat.toLowerCase().includes(searchTerm.toLowerCase())
+        cat.categorydName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleResetFilters = () => {
         setSelectedCategories([]);
         setPriceRange([0, 1000]);
         setSearchTerm('');
-        setSelectedRating([]);
-        onFilterChange({ categories: [], priceRange: [0, 1000], rating: [] });
+        setIsAvailable(false);
+        updateFilters({ categories: [], priceRange: [0, 1000], isAvailable: false });
     };
 
     return (
-        <div className="w-full lg:w-4/12 px-4 mb-6 ">
+        <div className="w-full lg:w-4/12 px-4 mb-6">
             <div className="bg-white p-4 shadow-lg rounded-lg space-y-6 border border-gray-200">
                 <h4 className="text-2xl font-bold mb-4">Filters</h4>
 
+                {/* Availability Filter
+                <div className="flex justify-between items-center mb-4">
+                    <h5 className="text-xl font-semibold text-gray-800">Availability</h5>
+                    <Switch
+                        checked={isAvailable}
+                        onChange={handleAvailabilityChange}
+                        color="primary"
+                        inputProps={{ 'aria-label': 'availability toggle' }}
+                    />
+                    <Typography>{isAvailable ? "In Stock" : "Out of Stock"}</Typography>
+                </div>
+                */}
+                <Divider />
+
                 {/* Search Bar for Categories */}
-                <div>
+                <div className="mb-4">
                     <input
                         type="text"
                         placeholder="Search categories..."
@@ -74,28 +98,33 @@ const FilterSidebar = ({ onFilterChange }) => {
                     />
                 </div>
 
-                {/* Horizontal filter categories */}
+                <Divider />
+
+                {/* Categories Section */}
                 <div>
                     <h5 className="text-xl font-semibold mb-4 text-gray-800 p-2">Categories</h5>
                     <div className="flex flex-col gap-3">
                         {filteredCategories.map(category => (
-                            <div key={category} className="flex items-center space-x-3 p-2">
+                            <div key={category.categoryId} className="flex items-center space-x-3 p-2">
                                 <input
                                     type="checkbox"
-                                    id={category}
-                                    checked={selectedCategories.includes(category)}
-                                    onChange={() => handleCategoryChange(category)}
+                                    id={category.categoryId}
+                                    checked={selectedCategories.includes(category.categoryId)}
+                                    onChange={() => handleCategoryChange(category.categoryId)}
                                     className="h-5 w-5 text-blue-600 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition duration-150"
                                 />
-                                <label htmlFor={category}
-                                       className="text-gray-800 cursor-pointer hover:text-blue-700 transition duration-150">
-                                    {category}
+                                <label
+                                    htmlFor={category.categoryId}
+                                    className="text-gray-800 cursor-pointer hover:text-blue-700 transition duration-150"
+                                >
+                                    {category.categorydName}
                                 </label>
                             </div>
                         ))}
                     </div>
                 </div>
 
+                <Divider />
 
                 {/* Price Range Filter */}
                 <div>
@@ -122,15 +151,14 @@ const FilterSidebar = ({ onFilterChange }) => {
                         <span>${priceRange[1]}</span>
                     </div>
                 </div>
+
+                <Divider />
+
                 {/* Buttons */}
                 <div className="flex gap-4">
                     <button
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 w-full"
-                        onClick={() => onFilterChange({
-                            categories: selectedCategories,
-                            priceRange,
-                            rating: selectedRating
-                        })}
+                        onClick={() => updateFilters()}
                     >
                         Apply Filters
                     </button>

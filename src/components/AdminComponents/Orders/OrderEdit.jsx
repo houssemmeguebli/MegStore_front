@@ -20,6 +20,7 @@ const OrderEdit = () => {
         customerEmail: '',
         customerPhone: '',
         orderNotes: '',
+
     });
     const [error, setError] = useState('');
     const [isProductEditEnabled, setIsProductEditEnabled] = useState(false);
@@ -50,6 +51,7 @@ const OrderEdit = () => {
                     customerEmail: fetchedOrder.customerEmail || "",
                     customerPhone: fetchedOrder.customerPhone || "",
                     orderNotes: fetchedOrder.orderNotes || "",
+                    totlaAmount:totalAmount,
                     products: products || [],
                 });
                 setIsLoading(false);
@@ -138,6 +140,7 @@ const OrderEdit = () => {
             customerEmail: formData.customerEmail || '',
             customerPhone: formData.customerPhone || '',
             orderNotes: formData.orderNotes || '',
+            totlaAmount:totalAmount,
             orderItems: formData.products.map(product => ({
                 orderItemId: product.orderItemId || 0, // Ensure orderItemId is sent, or default to 0 for new items
                 quantity: product.itemQuantity,
@@ -179,6 +182,7 @@ const OrderEdit = () => {
             return total + (product.itemQuantity * product.productPrice);
         }, 0).toFixed(2);
     };
+    const totalAmount = calculateTotalPrice();
 
     if (isLoading) return <Typography variant="h6">Loading...</Typography>;
     if (error) return <Typography variant="h6" color="error">{error}</Typography>;

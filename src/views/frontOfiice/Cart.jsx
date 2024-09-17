@@ -86,7 +86,7 @@ const Cart = () => {
                                         component="img"
                                         alt={item.productName}
                                         height="120"
-                                        image={item.imageUrl ? `https://localhost:7048/${item.imageUrl}` : 'https://via.placeholder.com/150'}
+                                        image={item.imageUrls ? `https://localhost:7048/${item.imageUrls[0]}` : 'https://via.placeholder.com/150'}
                                         sx={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 1 }}
                                         onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }}
                                     />

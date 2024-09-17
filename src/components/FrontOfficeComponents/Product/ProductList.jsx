@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Card, CardMedia, CardContent, Typography, Button, CardActions, Box } from '@mui/material';
+import {
+    Grid, Card, CardMedia, CardContent, Typography, Button, CardActions, Box
+} from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import Swal from 'sweetalert2';
 import CategoryService from "../../../_services/CategoryService";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-const ITEMS_PER_PAGE = 7;
+const ITEMS_PER_PAGE = 9;
 
 const addToCart = (item) => {
     const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -18,6 +20,7 @@ const ProductList = ({ products }) => {
     const [categories, setCategories] = useState({});
     const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
+
     useEffect(() => {
         const fetchCategories = async () => {
             const categoryIds = [...new Set(products.map(product => product.categoryId))];
@@ -29,7 +32,6 @@ const ProductList = ({ products }) => {
                     fetchedCategories[id] = category.categorydName;
                 }
             }
-
             setCategories(fetchedCategories);
         };
 
@@ -75,189 +77,210 @@ const ProductList = ({ products }) => {
             setCurrentPage(pageNumber);
         }
     };
+
     const handleViewDetails = (productId) => {
         navigate(`/shop/productDetails/${productId}`);
     };
-    return (
-        <div className="container mx-auto py-8" style={{ maxWidth: '1200px' }}>
-            <Grid container spacing={4}>
-                {paginatedProducts.map((product) => {
-                    const isProductInCart = cart.some(item => item.productId === product.productId);
 
-                    return (
-                        <Grid item xs={12} sm={6} md={12} key={product.productId}>
-                            <Card
-                                onClick={() => handleViewDetails(product.productId)}
-                                sx={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.1)',
-                                    borderRadius: '16px',
-                                    padding: '16px',
-                                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                                    '&:hover': {
-                                        transform: 'scale(1.02)',
-                                        boxShadow: '0px 12px 30px rgba(0, 0, 0, 0.2)',
-                                    },
-                                }}
-                            >
-                                {/* Product Image */}
-                                <CardMedia
-                                    component="img"
-                                    alt={product.productName}
-                                    image={product.imageUrl ? `https://localhost:7048/${product.imageUrl}` : 'https://via.placeholder.com/250x250'}
+    return (
+        <div className="container mx-auto py-8" style={{ maxWidth: '1400px' }}>
+            {products.length > 0 ? (
+                <Grid container spacing={4}>
+                    {paginatedProducts.map((product) => {
+                        const isProductInCart = cart.some(item => item.productId === product.productId);
+
+                        return (
+                            <Grid item xs={12} sm={6} md={3} lg={4} key={product.productId}>
+                                <Card
                                     sx={{
-                                        width: '250px',
-                                        height: '250px',
-                                        objectFit: 'cover',
-                                        borderRadius: '12px',
-                                        flexShrink: 0,
-                                        border: '1px solid #ddd',
-                                        transition: 'transform 0.3s ease-in-out',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+                                        borderRadius: '16px',
+                                        padding: '16px',
+                                        transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+                                        height: '100%', // Ensure card takes up full height of grid item
                                         '&:hover': {
-                                            transform: 'scale(1.05)',
+                                            transform: 'scale(1.03)',
+                                            boxShadow: '0px 8px 30px rgba(0, 0, 0, 0.15)',
                                         },
                                     }}
+                                >
+                                    {/* Product Image */}
+                                    <CardMedia
+                                        component="img"
+                                        alt={product.productName}
+                                        image={product.imageUrls ? `https://localhost:7048/${product.imageUrls[0]}` : 'https://via.placeholder.com/300x300'}
+                                        sx={{
+                                            width: '1000px',
+                                            height: '250px',
+                                            objectFit: 'cover',
+                                            borderRadius: '12px',
+                                            transition: 'transform 0.3s ease-in-out',
+                                            '&:hover': {
+                                                transform: 'scale(1.05)',
+                                            },
+                                        }}
+                                        onError={(e) => {
+                                            e.target.src = 'https://via.placeholder.com/300x300';
+                                        }}
+                                        onClick={() => handleViewDetails(product.productId)}
+                                    />
 
-                                    onError={(e) => {
-                                        e.target.src = 'https://via.placeholder.com/250x250';
-                                    }}
-                                />
-
-                                {/* Product Details */}
-                                <CardContent sx={{ paddingLeft: '24px', flexGrow: 1 }}>
-                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Ref: {product.productId}
-                                    </Typography>
-
-                                    <Typography gutterBottom variant="h5" component="div" sx={{ fontWeight: 'bold', color: '#333' }}>
-                                        {product.productName}
-                                    </Typography>
-
-                                    <Typography variant="body2" color="text.secondary" sx={{ marginBottom: '16px', lineHeight: '1.6' }}>
-                                        {product.productDescription}
-                                    </Typography>
-
-                                    {/* Category Name */}
-                                    {product.categoryId && categories[product.categoryId] && (
-                                        <Typography variant="body2" sx={{ color: '#666', marginTop: '8px' }}>
-                                            Category: {categories[product.categoryId]}
+                                    {/* Product Details */}
+                                    <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                                        <Typography variant="subtitle2" color="text.secondary">
+                                            Ref: {product.productId}
                                         </Typography>
-                                    )}
 
-                                    {/* Stock Availability */}
-                                    <Typography variant="h4" sx={{ color: '#007bff', fontWeight: 'bold' }}>
-                                        {product.isAvailable ? (
-                                            <Typography
-                                                sx={{
-                                                    color: '#4caf50', // Simple green color for available
-                                                    fontWeight: 'bold', // Bold text
-                                                    fontSize: '16px', // Font size
-                                                }}
-                                            >
-                                                Available
-                                            </Typography>
-                                        ) : (
-                                            <Typography
-                                                sx={{
-                                                    color: '#f44336', // Simple red color for out of stock
-                                                    fontWeight: 'bold',
-                                                    fontSize: '16px',
-                                                }}
-                                            >
-                                                Out of Stock
+                                        <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: '#333' }}>
+                                            {product.productName}
+                                        </Typography>
+
+                                        {/* Category Name */}
+                                        {product.categoryId && categories[product.categoryId] && (
+                                            <Typography variant="body2" sx={{ color: '#666' }}>
+                                                Category: {categories[product.categoryId]}
                                             </Typography>
                                         )}
-                                    </Typography>
 
-                                    <Typography variant="h4" sx={{ color: '#007bff', fontWeight: 'bold', marginTop: '16px' }}>
-                                        ${product.productPrice.toFixed(2)}
-                                    </Typography>
+                                        {/* Stock Availability */}
+                                        <Typography sx={{ fontWeight: 'bold', marginTop: '8px', fontSize: '14px' }}>
+                                            {product.isAvailable ? (
+                                                <span style={{ color: '#4caf50' }}>In Stock</span>
+                                            ) : (
+                                                <span style={{ color: '#f44336' }}>Out of Stock</span>
+                                            )}
+                                        </Typography>
+
+                                        <Typography variant="h5" sx={{ color: '#007bff', fontWeight: 'bold', marginTop: '8px' }}>
+                                            ${product.productPrice.toFixed(2)}
+                                        </Typography>
+                                    </CardContent>
 
                                     {/* Add to Cart Button */}
-                                    <CardActions sx={{ padding: 0, marginTop: '16px', justifyContent: 'flex-end', position: 'relative' }}>
+                                    <CardActions sx={{ justifyContent: 'center', paddingTop: '16px' }}>
                                         <Button
                                             variant="contained"
                                             sx={{
                                                 backgroundColor: '#28a745',
-                                                padding: '12px 24px',
-                                                fontSize: '16px',
+                                                padding: '10px 20px',
+                                                fontSize: '14px',
                                                 fontWeight: 'bold',
-                                                borderRadius: '8px',
-                                                '&:hover': { backgroundColor: '#218838' },
                                                 textTransform: 'none',
-                                                boxShadow: 'none',
+                                                '&:hover': { backgroundColor: '#218838' },
                                             }}
                                             startIcon={<AddShoppingCartIcon />}
                                             onClick={() => handleAddToCart(product)}
-                                            disabled={!product.isAvailable || isProductInCart} // Disable button if out of stock or already in cart
+                                            disabled={!product.isAvailable || isProductInCart}
                                         >
-                                            Add to Cart
+                                            {isProductInCart ? 'Already in Cart' : 'Add to Cart'}
                                         </Button>
-
-                                        {/* Message for already in cart */}
-                                        {isProductInCart && (
-                                            <Box
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: '50%',
-                                                    right: '10px',
-                                                    transform: 'translateY(-50%)',
-                                                    backgroundColor: '#f8d7da',
-                                                    color: '#721c24',
-                                                    padding: '5px 10px',
-                                                    borderRadius: '4px',
-                                                    fontSize: '12px',
-                                                    fontWeight: 'bold',
-                                                    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
-                                                }}
-                                            >
-                                                Already in Cart
-                                            </Box>
-                                        )}
                                     </CardActions>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    );
-                })}
-            </Grid>
+                                </Card>
+                            </Grid>
+                        );
+                    })}
+                </Grid>
+            ) : (
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    minHeight="60vh"
+                    sx={{
+                        borderRadius: '20px',
+                        boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.1)',
+                        padding: '50px',
+                        textAlign: 'center',
+
+                    }}
+                >
+                    <Box>
+                        <Typography
+                            variant="h3"
+                            sx={{
+                                fontWeight: 'bold',
+                                background: 'linear-gradient(to right, #ff758c, #007bff)', // Pink to light pink gradient
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                mb: 3,
+                                textShadow: '2px 4px 6px rgba(0, 0, 0, 0.15)',
+                            }}
+                        >
+                            No Products Available
+                        </Typography>
+
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                color: '#6a0572', // Deep purple
+                                fontSize: '20px',
+                                mb: 4,
+                            }}
+                        >
+                            We're working on adding more products for you. Please check back soon or explore our other collections!
+                        </Typography>
+
+                        <Button
+                            variant="contained"
+                            sx={{
+                                background: 'linear-gradient(to right, #007bff, #007bff)', // Same gradient for button
+                                color: '#fff',
+                                fontWeight: 'bold',
+                                textTransform: 'none',
+                                padding: '10px 20px',
+                                borderRadius: '30px',
+                                '&:hover': {
+                                    background: 'linear-gradient(to right, #ff6b88, #007bff)',
+                                },
+                            }}
+                            onClick={() => window.location.reload()} // Example action
+                        >
+                            Explore Other Collections
+                        </Button>
+                    </Box>
+                </Box>
+
+            )}
 
             {/* Pagination Controls */}
-            <div className="flex justify-center mt-8">
+            <Box display="flex" justifyContent="center" mt={4}>
                 <nav aria-label="Page navigation">
                     <ul className="inline-flex -space-x-px">
                         <li>
-                            <button
+                            <Button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1}
-                                className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100"
+                                variant="outlined"
+                                sx={{ marginRight: '8px' }}
                             >
                                 Previous
-                            </button>
+                            </Button>
                         </li>
                         {[...Array(totalPages)].map((_, index) => (
                             <li key={index}>
-                                <button
+                                <Button
                                     onClick={() => handlePageChange(index + 1)}
-                                    className={`px-4 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-100 ${currentPage === index + 1 ? 'bg-gray-200' : 'bg-white'}`}
+                                    variant={currentPage === index + 1 ? 'contained' : 'outlined'}
+                                    sx={{ marginRight: '8px' }}
                                 >
                                     {index + 1}
-                                </button>
+                                </Button>
                             </li>
                         ))}
                         <li>
-                            <button
+                            <Button
                                 onClick={() => handlePageChange(currentPage + 1)}
                                 disabled={currentPage === totalPages}
-                                className="px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100"
+                                variant="outlined"
                             >
                                 Next
-                            </button>
+                            </Button>
                         </li>
                     </ul>
                 </nav>
-            </div>
+            </Box>
         </div>
     );
 };

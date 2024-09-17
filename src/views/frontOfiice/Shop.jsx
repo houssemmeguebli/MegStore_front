@@ -18,10 +18,8 @@ export default function Shop() {
         const fetchProducts = async () => {
             try {
                 const fetchedProducts = await ProductService.getAllProducts();
-                // Access the products array within the $values property
-                const productsArray = fetchedProducts;
-                setProducts(productsArray);
-                setFilteredProducts(productsArray); // Ensure filteredProducts is initialized
+                setProducts(fetchedProducts);
+                setFilteredProducts(fetchedProducts); // Ensure filteredProducts is initialized
                 console.log("fetchedProducts", fetchedProducts);
             } catch (err) {
                 setError('Failed to fetch products');
@@ -46,7 +44,7 @@ export default function Shop() {
 
             // Category filter
             if (filters.categories.length > 0) {
-                filtered = filtered.filter(product => filters.categories.includes(product.category));
+                filtered = filtered.filter(product => filters.categories.includes(product.categoryId));
             }
 
             // Price range filter
@@ -63,7 +61,7 @@ export default function Shop() {
                     filtered.sort((a, b) => b.productPrice - a.productPrice);
                     break;
                 case 'popularity':
-                    filtered.sort((a, b) => b.popularity - a.popularity);
+                    filtered.sort((a, b) => b.popularity - a.popularity); // Assuming you have a `popularity` field
                     break;
                 default:
                     break;
@@ -97,11 +95,9 @@ export default function Shop() {
                 <div className="relative z-10 container mx-auto px-4">
                     <div className="flex flex-wrap gap-4">
                         {/* Hero Section */}
-                        <section
-                            className="relative w-full mb-12 mt-16 bg-gradient-to-r from-gray-900 to-gray-700 text-gray-100 py-12 rounded-lg shadow-lg overflow-hidden">
+                        <section className="relative w-full mb-12 mt-16 bg-gradient-to-r from-gray-900 to-gray-700 text-gray-100 py-12 rounded-lg shadow-lg overflow-hidden">
                             <div className="absolute inset-0 bg-black opacity-30"></div>
-                            <div
-                                className="relative container mx-auto px-6 lg:px-12 py-12 flex flex-col items-center text-center">
+                            <div className="relative container mx-auto px-6 lg:px-12 py-12 flex flex-col items-center text-center">
                                 <h2 className="text-4xl lg:text-5xl font-bold mb-4 leading-tight tracking-tight">
                                     Transform Your Shopping Journey
                                 </h2>
@@ -134,13 +130,12 @@ export default function Shop() {
                                     </select>
                                 </div>
                                 {/* Product List */}
-                                <ProductList products={filteredProducts}/>
+                                <ProductList products={filteredProducts} />
                             </div>
                         </div>
                     </div>
                 </div>
-                <div
-                    className="absolute bottom-0 left-0 right-0 w-full pointer-events-none overflow-hidden h-20 bg-gradient-to-t from-gray-100 to-transparent">
+                <div className="absolute bottom-0 left-0 right-0 w-full pointer-events-none overflow-hidden h-20 bg-gradient-to-t from-gray-100 to-transparent">
                     <svg
                         className="absolute bottom-0 overflow-hidden"
                         xmlns="http://www.w3.org/2000/svg"
@@ -150,14 +145,11 @@ export default function Shop() {
                         x="0"
                         y="0"
                     >
-                        <polygon
-                            className="text-gray-100 fill-current"
-                            points="2560 0 2560 100 0 100"
-                        ></polygon>
+                        <polygon className="text-gray-100 fill-current" points="2560 0 2560 100 0 100"></polygon>
                     </svg>
                 </div>
             </main>
-            <Footer/>
+            <Footer />
         </>
     );
 }
