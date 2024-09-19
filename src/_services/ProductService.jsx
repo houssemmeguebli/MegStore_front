@@ -58,36 +58,19 @@ class ProductService {
         }
     }
 
-
-
-    // Update an existing product
-    async updateProduct(productId, productDto, imageFiles) {
+    async  updateProduct (productId, formData)  {
         try {
-            // Create a new FormData instance
-            const formData = new FormData();
-
-            // Append productDto as a JSON string
-            formData.append('productDto', JSON.stringify(productDto));
-
-            // Append each image file
-            if (imageFiles && imageFiles.length > 0) {
-                imageFiles.forEach((file, index) => {
-                    formData.append('imageFiles', file);
-                });
-            }
-
-            // Send the PUT request with FormData
-            await axios.put(`${this.baseUrl}/${productId}`, formData, {
+            const response = await axios.put(`${this.baseUrl}/${productId}`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+                    'Content-Type': 'multipart/form-data',  // Ensure this is correctly set
+                },
             });
+            return response.data;
         } catch (error) {
-            console.error(`Error updating product with ID ${productId}:`, error);
+            console.error("Error updating product:", error.response?.data || error.message);
             throw error;
         }
-    }
-
+    };
     // Delete a product by ID
     async deleteProduct(productId) {
         try {
@@ -97,6 +80,21 @@ class ProductService {
             throw error;
         }
     }
+    async deleteProductImage(productId, imageUrlToDelete) {
+        try {
+            // Construct the URL for deleting an image
+            const url = `${this.baseUrl}/${productId}/delete-image?imageUrlToDelete=${encodeURIComponent(imageUrlToDelete)}`;
+
+            // Send the DELETE request
+            await axios.delete(url);
+
+            console.log(`Image ${imageUrlToDelete} deleted successfully.`);
+        } catch (error) {
+            console.error(`Error deleting image ${imageUrlToDelete} from product with ID ${productId}:`, error);
+            throw error; // Optionally re-throw to handle in the calling code
+        }
+    }
+
     async getProductsByCategoryId(categoryId){
         try {
             const response = await axios.get(`${this.baseUrl}/category/${categoryId}`);
