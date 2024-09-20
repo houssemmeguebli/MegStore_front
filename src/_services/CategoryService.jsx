@@ -25,6 +25,8 @@ class CategoryService {
             return response.data;
         } catch (error) {
             console.error(`Error fetching category with ID ${categoryId}:`, error);
+            console.log("Error Response Data:", error.response.data);  // Inspect this for details
+
             throw error;
         }
     }

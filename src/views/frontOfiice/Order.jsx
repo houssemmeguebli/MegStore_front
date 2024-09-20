@@ -45,12 +45,12 @@ const Order = () => {
     }, [customerId]);
 
     useEffect(() => {
-        const calculatedTotal = cartItems.reduce(
-            (total, item) => total + item.productPrice * (item.quantity || 1),
-            0
-        );
-        setTotalAmount(calculatedTotal);
-    }, [cartItems]);
+        // Retrieve totalAmount from local storage
+        const storedTotal = localStorage.getItem('finalAmount');
+        if (storedTotal) {
+            setTotalAmount(Number(storedTotal));
+        }
+    }, []);
 
     const handleFinalizeOrder = async () => {
         const orderData = {
@@ -63,12 +63,12 @@ const Order = () => {
             customerAddress: userData.address,
             customerPhone: userData.phone,
             orderNotes: orderNotes,
-            totlaAmount: totalAmount,
+            TotlaAmount: totalAmount,
             orderItems: cartItems.map(item => ({
                 productId: item.productId,
                 quantity: item.quantity || 1,
                 unitPrice: item.productPrice,
-                totalPrice: item.productPrice * (item.quantity || 1),
+                TotalPrice:totalAmount,
             })),
         };
 
@@ -91,6 +91,9 @@ const Order = () => {
                 });
 
                 localStorage.removeItem('cart');
+                localStorage.removeItem('totalAmount'); // Clear total amount
+                localStorage.removeItem('finalAmount'); // Clear total amount
+
                 navigate('/shop');
 
                 console.log('Order Created Successfully:', response); // Log order creation response
@@ -113,10 +116,6 @@ const Order = () => {
             });
         }
     };
-
-
-
-
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -224,21 +223,20 @@ const Order = () => {
 
                                 <Box sx={{ mb: 3 }}>
                                     {cartItems.map((item) => (
-                                        <Box key={item.productId} sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                            <Typography>{item.productName} (x{item.quantity})</Typography>
-                                            <Typography>${(item.productPrice * item.quantity).toFixed(2)}</Typography>
+                                        <Box key={item.productId} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                            <Typography variant="body1">{item.productName}</Typography>
+                                            <Typography variant="body1">${item.productPrice} x {item.quantity || 1}</Typography>
                                         </Box>
                                     ))}
                                 </Box>
 
-                                <Divider sx={{ mb: 2 }} />
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Total:</Typography>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>${totalAmount.toFixed(2)}</Typography>
+                                    <Typography variant="h6">Total:</Typography>
+                                    <Typography variant="h6">${totalAmount}</Typography>
                                 </Box>
 
-                                <Button variant="contained" color="primary" fullWidth sx={{ mt: 3 }} onClick={handleFinalizeOrder}>
-                                    Place Order
+                                <Button variant="contained" color="primary" onClick={handleFinalizeOrder} fullWidth>
+                                    Finalize Order
                                 </Button>
                             </Paper>
                         </Grid>

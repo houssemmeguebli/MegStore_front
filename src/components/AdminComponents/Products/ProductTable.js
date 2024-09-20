@@ -30,7 +30,7 @@ export default function ProductTable({ color }) {
       }
     }
     fetchProducts();
-  }, []);
+  }, [products]);
 
   const handleEdit = (productId) => {
     navigate(`/admin/products/edit/${productId}`);

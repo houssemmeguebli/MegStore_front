@@ -60,9 +60,6 @@ export default function Shop() {
                 case 'price-desc':
                     filtered.sort((a, b) => b.productPrice - a.productPrice);
                     break;
-                case 'popularity':
-                    filtered.sort((a, b) => b.popularity - a.popularity); // Assuming you have a `popularity` field
-                    break;
                 default:
                     break;
             }

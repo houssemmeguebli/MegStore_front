@@ -5,7 +5,7 @@ import CategoryService from "../../../_services/CategoryService";
 
 const CategoryForm = () => {
     const [category, setCategory] = useState({
-        categorydName: '', // Using categorydName as per your current backend structure
+        categorydName: '',
         categoryDescription: ''
     });
 

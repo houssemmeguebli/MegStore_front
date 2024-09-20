@@ -13,6 +13,7 @@ const FilterSidebar = ({ onFilterChange }) => {
         const fetchCategories = async () => {
             try {
                 const categoryList = await CategoryService.getAllCategories();
+                console.log("categoryList",categoryList)
                 setCategories(categoryList);
             } catch (err) {
                 console.error('Failed to fetch categories:', err);

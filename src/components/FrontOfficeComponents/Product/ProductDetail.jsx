@@ -34,7 +34,7 @@ const ProductDetail = () => {
                     }
                     if (productData.categoryId) {
                         const category = await CategoryService.getCategoryById(productData.categoryId);
-                        setCategoryName(category.categoryName);
+                        setCategoryName(category.categorydName);
 
                         const related = await ProductService.getProductsByCategoryId(productData.categoryId);
                         setRelatedProducts(related.filter(p => p.productId !== productId));

@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import {Link, useNavigate} from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button, Typography, IconButton, TextField, Divider, CardMedia, Box, Container, Snackbar, Alert } from '@mui/material';
 import { Remove, Add, Delete } from '@mui/icons-material';
 import Navbar from "../../components/Navbars/AuthNavbar";
 import Footer from "../../components/Footers/Footer";
+import Swal from 'sweetalert2';
+import CouponService from "../../_services/CouponService";
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
     const [discountCode, setDiscountCode] = useState('');
     const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
+    const [discountAmount, setDiscountAmount] = useState(0);
+    const [discountPercentage, setDiscountPercentage] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -20,10 +24,15 @@ const Cart = () => {
         localStorage.setItem('cart', JSON.stringify(cartItems));
     }, [cartItems]);
 
+    useEffect(() => {
+        const finalPrice = getTotalPrice() - discountAmount;
+        localStorage.setItem('finalAmount', finalPrice.toFixed(2));
+    }, [discountAmount, cartItems]); // Update when discountAmount or cartItems change
+
     const handleQuantityChange = (productId, newQuantity) => {
         setCartItems(prevItems =>
             prevItems.map(item =>
-                item.productId === productId ? { ...item, quantity: newQuantity } : item
+                item.productId === productId ? { ...item, quantity: Math.max(1, newQuantity) } : item
             )
         );
     };
@@ -33,24 +42,36 @@ const Cart = () => {
     };
 
     const handleCheckout = () => {
-        navigate('/checkout');
-    };
-
-    const getTotalPrice = () => {
-        return cartItems.reduce((total, item) => total + (item.productPrice || 0) * (item.quantity || 1), 0);
+        navigate('/order', { state: { finalPrice } }); // Pass final price to order
     };
 
     const handleDiscountCodeChange = (e) => {
         setDiscountCode(e.target.value);
     };
 
-    const applyDiscount = () => {
-        if (discountCode === '') {
+    const applyDiscount = async () => {
+        if (discountCode.trim() === '') {
             setAlert({ open: true, message: 'Please enter a discount code.', severity: 'warning' });
-        } else {
-            // Mock discount application logic
-            setAlert({ open: true, message: 'Discount applied!', severity: 'success' });
-            setDiscountCode('');
+            return;
+        }
+
+        try {
+            const coupons = await CouponService.getAllCoupons();
+            const validCoupon = coupons.find(coupon => coupon.code === discountCode);
+
+            if (validCoupon) {
+                const discount = validCoupon.discountPercentage || 0;
+                const totalPrice = getTotalPrice();
+                const discountAmount = (totalPrice * discount) / 100;
+
+                setDiscountAmount(discountAmount);
+                setDiscountPercentage(discount);
+                setAlert({ open: true, message: 'Discount applied!', severity: 'success' });
+            } else {
+                setAlert({ open: true, message: 'Invalid discount code.', severity: 'error' });
+            }
+        } catch (error) {
+            setAlert({ open: true, message: 'Error validating discount code.', severity: 'error' });
         }
     };
 
@@ -58,10 +79,19 @@ const Cart = () => {
         setAlert({ ...alert, open: false });
     };
 
+    const getTotalPrice = () => {
+        return cartItems.reduce((total, item) =>
+            total + ((item.productPrice || 0) * (item.quantity || 1)), 0
+        );
+    };
+
+    const totalPrice = getTotalPrice();
+    const finalPrice = totalPrice - discountAmount;
+
     return (
         <>
             <Navbar />
-            <main style={{ paddingTop: '64px', paddingBottom: '32px', backgroundColor: '#f4f4f4' , margin: "10%" }}>
+            <main style={{ paddingTop: '64px', paddingBottom: '32px', backgroundColor: '#f4f4f4', margin: "10%" }}>
                 <Container maxWidth="lg">
                     <Typography variant="h4" align="center" gutterBottom sx={{ fontWeight: 'bold', marginBottom: 4 }}>
                         Your Cart
@@ -93,10 +123,10 @@ const Cart = () => {
                                     <Box sx={{ flexGrow: 1, marginLeft: 2 }}>
                                         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{item.productName}</Typography>
                                         <Typography variant="body1">${(item.productPrice || 0).toFixed(2)}</Typography>
-                                        <Typography variant="body2" color="textSecondary">Total: ${((item.productPrice || 0) * (item.quantity || 1)).toFixed(2)}</Typography>
+                                        <Typography variant="body2" color="textSecondary">Total: ${(item.productPrice * item.quantity).toFixed(2)}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <IconButton onClick={() => handleQuantityChange(item.productId, Math.max(1, item.quantity - 1))}>
+                                        <IconButton onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}>
                                             <Remove />
                                         </IconButton>
                                         <TextField
@@ -131,14 +161,19 @@ const Cart = () => {
                                 </Box>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: 4, width: '100%', maxWidth: 600 }}>
                                     <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                                        Total: ${getTotalPrice().toFixed(2)}
+                                        Total: ${(totalPrice).toFixed(2)}
+                                    </Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2, color: 'green' }}>
+                                        Discount ({discountPercentage}%): -${discountAmount.toFixed(2)}
+                                    </Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
+                                        Final Total: ${finalPrice.toFixed(2)}
                                     </Typography>
                                     <Link to={"/order"}>
                                         <Button variant="contained" color="primary" onClick={handleCheckout} sx={{ width: '100%' }}>
                                             Proceed to Checkout
                                         </Button>
                                     </Link>
-
                                 </Box>
                             </Box>
                         </Box>

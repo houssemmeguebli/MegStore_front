@@ -80,7 +80,7 @@ export default function Sidebar() {
               <li className="items-center">
                 <Link
                     className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/BackOffice/dashboard") !== -1
+                        window.location.href.indexOf("/admin/dashboard") !== -1
                             ? "text-lightBlue-500 hover:text-lightBlue-600"
                             : "text-blueGray-700 hover:text-blueGray-500"
                     }`}
@@ -88,7 +88,7 @@ export default function Sidebar() {
                 >
                   <i
                       className={`fas fa-tv mr-2 text-sm ${
-                          window.location.href.indexOf("/BackOffice/dashboard") !== -1
+                          window.location.href.indexOf("/admin/dashboard") !== -1
                               ? "opacity-75"
                               : "text-blueGray-300"
                       }`}
@@ -99,7 +99,7 @@ export default function Sidebar() {
               <li className="items-center">
                 <Link
                     className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/BackOffice/categories") !== -1
+                        window.location.href.indexOf("/admin/categories") !== -1
                             ? "text-lightBlue-500 hover:text-lightBlue-600"
                             : "text-blueGray-700 hover:text-blueGray-500"
                     }`}
@@ -107,7 +107,7 @@ export default function Sidebar() {
                 >
                   <i
                       className={`fas fa-table mr-2 text-sm ${
-                          window.location.href.indexOf("/BackOffice/categories") !== -1
+                          window.location.href.indexOf("/admin/categories") !== -1
                               ? "opacity-75"
                               : "text-blueGray-300"
                       }`}
@@ -118,15 +118,15 @@ export default function Sidebar() {
               <li className="items-center">
                 <Link
                     className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/BackOffice/products") !== -1
+                        window.location.href.indexOf("/admin/products") !== -1
                             ? "text-lightBlue-500 hover:text-lightBlue-600"
                             : "text-blueGray-700 hover:text-blueGray-500"
                     }`}
                     to="/admin/products"
                 >
                   <i
-                      className={`fas fa-table mr-2 text-sm ${
-                          window.location.href.indexOf("/BackOffice/products") !== -1
+                      className={`fas fa-box mr-2 text-sm ${
+                          window.location.href.indexOf("/admin/products") !== -1
                               ? "opacity-75"
                               : "text-blueGray-300"
                       }`}
@@ -137,7 +137,7 @@ export default function Sidebar() {
               <li className="items-center">
                 <Link
                     className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/BackOffice/orders") !== -1
+                        window.location.href.indexOf("/admin/orders") !== -1
                             ? "text-lightBlue-500 hover:text-lightBlue-600"
                             : "text-blueGray-700 hover:text-blueGray-500"
                     }`}
@@ -145,7 +145,7 @@ export default function Sidebar() {
                 >
                   <i
                       className={`fas fa-shopping-cart mr-2 text-sm ${
-                          window.location.href.indexOf("/BackOffice/orders") !== -1
+                          window.location.href.indexOf("/admin/orders") !== -1
                               ? "opacity-75"
                               : "text-blueGray-300"
                       }`}
@@ -153,11 +153,29 @@ export default function Sidebar() {
                   Orders
                 </Link>
               </li>
-
               <li className="items-center">
                 <Link
                     className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/BackOffice/settings") !== -1
+                        window.location.href.indexOf("/admin/coupons") !== -1
+                            ? "text-lightBlue-500 hover:text-lightBlue-600"
+                            : "text-blueGray-700 hover:text-blueGray-500"
+                    }`}
+                    to="/admin/coupons"
+                >
+                  <i
+                      className={`fas fa-tags mr-2 text-sm ${
+                          window.location.href.indexOf("/admin/coupons") !== -1
+                              ? "opacity-75"
+                              : "text-blueGray-300"
+                      }`}
+                  ></i>{" "}
+                  Coupons
+                </Link>
+              </li>
+              <li className="items-center">
+                <Link
+                    className={`text-xs uppercase py-3 font-bold block ${
+                        window.location.href.indexOf("/admin/settings") !== -1
                             ? "text-lightBlue-500 hover:text-lightBlue-600"
                             : "text-blueGray-700 hover:text-blueGray-500"
                     }`}
@@ -165,7 +183,7 @@ export default function Sidebar() {
                 >
                   <i
                       className={`fas fa-tools mr-2 text-sm ${
-                          window.location.href.indexOf("/BackOffice/settings") !== -1
+                          window.location.href.indexOf("/admin/settings") !== -1
                               ? "opacity-75"
                               : "text-blueGray-300"
                       }`}

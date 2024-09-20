@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { TextField, Button, Typography, CircularProgress, Grid, Switch, FormControlLabel, Box, Paper } from "@mui/material";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import CategoryService from "../../../_services/CategoryService";
-import ProductService from "../../../_services/ProductService";
 
 export default function CategoriesDetails() {
     const { categoryId } = useParams();
     const navigate = useNavigate();
-    const [category, setCategory] = useState(null);
-    const [relatedProducts, setRelatedProducts] = useState([]);
+    const [category, setCategory] = useState();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
@@ -18,10 +16,7 @@ export default function CategoriesDetails() {
         async function fetchCategory() {
             try {
                 const data = await CategoryService.getCategoryById(categoryId);
-                setCategory(data.$values);
-
-                const relatedData = await ProductService.getProductsByCategory(categoryId);
-                setRelatedProducts(relatedData);
+                setCategory(data);
             } catch (error) {
                 console.error("Error fetching category:", error);
             }
@@ -37,17 +32,6 @@ export default function CategoriesDetails() {
         });
     };
 
-    const handleSwitchChange = (e) => {
-        setCategory({
-            ...category,
-            [e.target.name]: e.target.checked
-        });
-    };
-
-    const handleFileChange = (e) => {
-        setImageFile(e.target.files[0]);
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -55,10 +39,9 @@ export default function CategoriesDetails() {
         setSuccess(false);
 
         try {
-            const response = await CategoryService.updateCategory(categoryId, category, imageFile);
+            const response = await CategoryService.updateCategory(categoryId, category);
             setSuccess(true);
             setError('');
-            setImageFile(null);
             navigate('/admin/categories');
         } catch (error) {
             setError("Failed to update category. Please try again.");
