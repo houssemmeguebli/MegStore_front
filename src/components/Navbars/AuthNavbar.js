@@ -9,7 +9,7 @@ export default function Navbar(props) {
   useEffect(() => {
     const updateCartCount = () => {
       const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
-      const itemCount = cartItems.reduce((total, item) => total + (item.quantity || 1), 0);
+      const itemCount = cartItems.reduce((total, item) => total + (item.length || 1), 0);
       setCartCount(itemCount);
     };
 
@@ -66,8 +66,8 @@ export default function Navbar(props) {
                   >
                     <i className="lg:text-gray-300 text-gray-400 fas fa-shopping-cart text-lg leading-lg mr-2" />
                     Cart
-                    {cartCount > 0 && (
-                        <span className="absolute top-0 right-0 -mt-1 -mr-1 w-5 h-5 flex items-center justify-center text-white text-xs bg-red-600 rounded-full">
+                    {(cartCount) >= 0 && (
+                        <span className="absolute top-0 right-0 -mt-1 -mr-1 w-5 h-5 flex items-center justify-center text-white text-xs  rounded-full">
                       ({cartCount})
                     </span>
                     )}

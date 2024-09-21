@@ -54,9 +54,16 @@ const ProductList = ({ products }) => {
             });
             return;
         }
+        // Calculate discounted price if there is a discount
+        const finalPrice = product.discountPercentage > 0
+            ? (product.productPrice * (1 - product.discountPercentage / 100)).toFixed(2)
+            : product.productPrice.toFixed(2);
 
-        addToCart(product);
-        setCart([...cart, product]);
+        // Add product to cart with final price (discounted if applicable)
+        const productToAdd = { ...product, finalPrice };
+
+        addToCart(productToAdd);
+        setCart([...cart, productToAdd]);
 
         Swal.fire({
             title: 'Added to Cart!',
@@ -80,6 +87,13 @@ const ProductList = ({ products }) => {
 
     const handleViewDetails = (productId) => {
         navigate(`/shop/productDetails/${productId}`);
+    };
+
+    const calculateDiscountedPrice = (product) => {
+        if (product.discountPercentage > 0) {
+            return (product.productPrice * (1 - product.discountPercentage / 100)).toFixed(2);
+        }
+        return product.productPrice.toFixed(2);
     };
 
     return (
@@ -127,7 +141,6 @@ const ProductList = ({ products }) => {
                                         onClick={() => handleViewDetails(product.productId)}
                                     />
 
-                                    {/* Product Details */}
                                     <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
                                         <Typography variant="subtitle2" color="text.secondary">
                                             Ref: {product.productId}
@@ -137,14 +150,12 @@ const ProductList = ({ products }) => {
                                             {product.productName}
                                         </Typography>
 
-                                        {/* Category Name */}
                                         {product.categoryId && categories[product.categoryId] && (
                                             <Typography variant="body2" sx={{ color: '#666' }}>
                                                 Category: {categories[product.categoryId]}
                                             </Typography>
                                         )}
 
-                                        {/* Stock Availability */}
                                         <Typography sx={{ fontWeight: 'bold', marginTop: '8px', fontSize: '14px' }}>
                                             {product.isAvailable ? (
                                                 <span style={{ color: '#4caf50' }}>In Stock</span>
@@ -153,12 +164,25 @@ const ProductList = ({ products }) => {
                                             )}
                                         </Typography>
 
-                                        <Typography variant="h5" sx={{ color: '#007bff', fontWeight: 'bold', marginTop: '8px' }}>
-                                            ${product.productPrice.toFixed(2)}
-                                        </Typography>
+                                        {product.discountPercentage > 0 ? (
+                                            <>
+                                                <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'red' }}>
+                                                    ${product.productPrice.toFixed(2)}
+                                                </Typography>
+                                                <Typography variant="h5" sx={{ color: '#007bff', fontWeight: 'bold' }}>
+                                                    ${calculateDiscountedPrice(product)}
+                                                </Typography>
+                                                <Typography variant="body2" sx={{ color: '#f39c12', fontWeight: 'bold' }}>
+                                                    Save {product.discountPercentage}%!
+                                                </Typography>
+                                            </>
+                                        ) : (
+                                            <Typography variant="h5" sx={{ color: '#007bff', fontWeight: 'bold' }}>
+                                                ${product.productPrice.toFixed(2)}
+                                            </Typography>
+                                        )}
                                     </CardContent>
 
-                                    {/* Add to Cart Button */}
                                     <CardActions sx={{ justifyContent: 'center', paddingTop: '16px' }}>
                                         <Button
                                             variant="contained"
@@ -193,7 +217,6 @@ const ProductList = ({ products }) => {
                         boxShadow: '0px 10px 25px rgba(0, 0, 0, 0.1)',
                         padding: '50px',
                         textAlign: 'center',
-
                     }}
                 >
                     <Box>
@@ -201,7 +224,7 @@ const ProductList = ({ products }) => {
                             variant="h3"
                             sx={{
                                 fontWeight: 'bold',
-                                background: 'linear-gradient(to right, #ff758c, #007bff)', // Pink to light pink gradient
+                                background: 'linear-gradient(to right, #ff758c, #007bff)',
                                 WebkitBackgroundClip: 'text',
                                 WebkitTextFillColor: 'transparent',
                                 mb: 3,
@@ -214,7 +237,7 @@ const ProductList = ({ products }) => {
                         <Typography
                             variant="body1"
                             sx={{
-                                color: '#6a0572', // Deep purple
+                                color: '#6a0572',
                                 fontSize: '20px',
                                 mb: 4,
                             }}
@@ -225,7 +248,7 @@ const ProductList = ({ products }) => {
                         <Button
                             variant="contained"
                             sx={{
-                                background: 'linear-gradient(to right, #007bff, #007bff)', // Same gradient for button
+                                background: 'linear-gradient(to right, #007bff, #007bff)',
                                 color: '#fff',
                                 fontWeight: 'bold',
                                 textTransform: 'none',
@@ -235,13 +258,12 @@ const ProductList = ({ products }) => {
                                     background: 'linear-gradient(to right, #ff6b88, #007bff)',
                                 },
                             }}
-                            onClick={() => window.location.reload()} // Example action
+                            onClick={() => window.location.reload()}
                         >
                             Explore Other Collections
                         </Button>
                     </Box>
                 </Box>
-
             )}
 
             {/* Pagination Controls */}

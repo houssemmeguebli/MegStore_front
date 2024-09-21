@@ -1,15 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-    TextField, Button, Typography, CircularProgress, Grid, Switch,
-    FormControlLabel, Box, Paper, IconButton, Snackbar
+    TextField, Button, Typography, CircularProgress, Grid,
+    FormControlLabel, Switch, Box, Paper, IconButton, Snackbar
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductService from "../../../_services/ProductService";
-import Slider from "react-slick";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
-import DeleteIcon from '@mui/icons-material/Delete';
 import UploadIcon from '@mui/icons-material/Upload';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from 'sweetalert2';
 import MuiAlert from '@mui/material/Alert';
 
@@ -24,6 +21,7 @@ export default function ProductDetail() {
     const [imageFiles, setImageFiles] = useState([]);
     const [imagePreviews, setImagePreviews] = useState([]);
     const [deletedImages, setDeletedImages] = useState([]);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [product, setProduct] = useState({
         productName: '',
         productPrice: '',
@@ -32,6 +30,8 @@ export default function ProductDetail() {
         isAvailable: false,
         imageUrls: [],
         dateAdded: '',
+        discountPercentage:'',
+
     });
 
     useEffect(() => {
@@ -40,7 +40,7 @@ export default function ProductDetail() {
             try {
                 const data = await ProductService.getProductById(productId);
                 setProduct(data);
-                const previews = data.imageUrls.map(url => `https://localhost:7048/${url}`);
+                const previews = Array.from(new Set(data.imageUrls.map(url => `https://localhost:7048/${url}`))); // Ensure unique URLs
                 setImagePreviews(previews);
             } catch (error) {
                 console.error("Error fetching product:", error);
@@ -58,7 +58,7 @@ export default function ProductDetail() {
         setImageFiles(prevFiles => [...prevFiles, ...newFiles]);
 
         const newPreviews = newFiles.map(file => URL.createObjectURL(file));
-        setImagePreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
+        setImagePreviews(prevPreviews => [...new Set([...prevPreviews, ...newPreviews])]); // Ensure unique previews
     };
 
     const handleInputChange = (e) => {
@@ -102,6 +102,10 @@ export default function ProductDetail() {
         }
     };
 
+    const handleThumbnailClick = (index) => {
+        setCurrentImageIndex(index);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -120,19 +124,16 @@ export default function ProductDetail() {
             formData.append('productPrice', product.productPrice);
             formData.append('stockQuantity', product.stockQuantity);
             formData.append('productDescription', product.productDescription);
+            formData.append('discountPercentage', product.discountPercentage);
             formData.append('isAvailable', product.isAvailable);
-
             imageFiles.forEach(file => {
                 formData.append('imageFiles', file);
             });
 
             const updatedImageUrls = [...imagePreviews, ...deletedImages];
             formData.append('imageUrls', JSON.stringify(updatedImageUrls));
-
-            for (const [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
-            }
-
+            formData.append('categoryId',product.categoryId);
+            formData.set('adminId',product.adminId);
             await ProductService.updateProduct(productId, formData);
 
             setSuccess(true);
@@ -164,14 +165,6 @@ export default function ProductDetail() {
         );
     }
 
-    const carouselSettings = {
-        dots: true,
-        infinite: true,
-        speed: 500,
-        slidesToShow: 1,
-        slidesToScroll: 1,
-    };
-
     return (
         <Box className="p-8 mx-auto max-w-7xl" sx={{ marginTop: '5%' }}>
             <Paper elevation={3} className="p-8 shadow-lg bg-white rounded-lg">
@@ -183,28 +176,40 @@ export default function ProductDetail() {
                 <Box component="form" className="mt-4" onSubmit={handleSubmit} noValidate autoComplete="off">
                     <Grid container spacing={4}>
                         <Grid item xs={12} sm={6}>
-                            <Slider {...carouselSettings} className="rounded-lg shadow-md">
+                            <Box className="mb-4">
+                                <img
+                                    src={imagePreviews[currentImageIndex] || "https://via.placeholder.com/600x400"}
+                                    alt={`Product Image`}
+                                    className="w-full h-auto object-cover rounded-lg"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = "https://via.placeholder.com/600x400";
+                                    }}
+                                />
+                            </Box>
+                            <Grid container spacing={1}>
                                 {imagePreviews.map((url, index) => (
-                                    <div key={index} className="relative">
+                                    <Grid item xs={4} key={index}>
                                         <img
                                             src={url}
-                                            alt={`Product Image ${index}`}
-                                            className="w-full h-auto object-cover rounded-lg"
+                                            alt={`Thumbnail ${index}`}
+                                            className={`w-full h-auto object-cover rounded-lg cursor-pointer ${currentImageIndex === index ? 'border-2 border-blue-500' : ''}`}
+                                            onClick={() => handleThumbnailClick(index)}
                                             onError={(e) => {
                                                 e.target.onerror = null;
-                                                e.target.src = "https://via.placeholder.com/300x400";
+                                                e.target.src = "https://via.placeholder.com/100x100";
                                             }}
                                         />
                                         <IconButton
                                             color="error"
-                                            className="absolute top-2 right-2"
                                             onClick={() => handleImageDelete(index)}
+                                            size="small"
                                         >
-                                            <DeleteIcon />
+                                            <DeleteIcon fontSize="inherit" />
                                         </IconButton>
-                                    </div>
+                                    </Grid>
                                 ))}
-                            </Slider>
+                            </Grid>
                         </Grid>
 
                         <Grid item xs={12} sm={6}>
@@ -261,6 +266,22 @@ export default function ProductDetail() {
                                         rows={4}
                                         value={product.productDescription}
                                         onChange={handleInputChange}
+                                        required
+                                        variant="outlined"
+                                        className="mb-4"
+                                        sx={{ '& .MuiInputBase-input': { color: 'black' } }}
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="discountPercentage"
+                                        label="Discount %"
+                                        fullWidth
+                                        multiline
+                                        rows={4}
+                                        value={product.discountPercentage}
+                                        onChange={handleInputChange}
+                                        required
                                         variant="outlined"
                                         className="mb-4"
                                         sx={{ '& .MuiInputBase-input': { color: 'black' } }}
@@ -270,54 +291,40 @@ export default function ProductDetail() {
                                     <FormControlLabel
                                         control={
                                             <Switch
-                                                name="isAvailable"
                                                 checked={product.isAvailable}
                                                 onChange={handleInputChange}
+                                                name="isAvailable"
                                             />
                                         }
-                                        label="Available"
+                                        label="Available for Purchase"
                                     />
                                 </Grid>
-                                <Grid item xs={12}>
-                                    <input
-                                        accept="image/*"
-                                        type="file"
-                                        id="fileInput"
-                                        multiple
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                    />
-                                    <label htmlFor="fileInput">
-                                        <Button
-                                            component="span"
-                                            variant="contained"
-                                            startIcon={<UploadIcon />}
-                                            className="mb-4"
-                                        >
-                                            Upload Images
-                                        </Button>
-                                    </label>
-                                </Grid>
-                                {imageFiles.length > 0 && (
-                                    <Grid item xs={12}>
-                                        <Typography variant="subtitle1" className="mb-2">Selected Files:</Typography>
-                                        <Box className="flex flex-wrap gap-2">
-                                            {imageFiles.map((file, index) => (
-                                                <Paper key={index} className="p-2 shadow-md rounded-lg">
-                                                    <Typography variant="body2">{file.name}</Typography>
-                                                </Paper>
-                                            ))}
-                                        </Box>
-                                    </Grid>
-                                )}
                                 <Grid item xs={12}>
                                     <Button
-                                        type="submit"
                                         variant="contained"
-                                        color="primary"
-                                        disabled={loading}
+                                        component="label"
+                                        startIcon={<UploadIcon />}
+                                        fullWidth
+                                        className="mb-4"
                                     >
-                                        {loading ? "Updating..." : "Update Product"}
+                                        Upload Images
+                                        <input
+                                            type="file"
+                                            hidden
+                                            multiple
+                                            accept="image/*"
+                                            onChange={handleFileChange}
+                                        />
+                                    </Button>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Button
+                                        variant="contained"
+                                        type="submit"
+                                        color="primary"
+                                        fullWidth
+                                    >
+                                        Save Changes
                                     </Button>
                                 </Grid>
                             </Grid>
@@ -325,11 +332,15 @@ export default function ProductDetail() {
                     </Grid>
                 </Box>
             </Paper>
-            <Snackbar open={error !== ''} autoHideDuration={6000} onClose={() => setError('')}>
-                <Alert onClose={() => setError('')} severity="error">{error}</Alert>
+            <Snackbar open={Boolean(error)} autoHideDuration={6000} onClose={() => setError('')}>
+                <Alert onClose={() => setError('')} severity="error">
+                    {error}
+                </Alert>
             </Snackbar>
             <Snackbar open={success} autoHideDuration={6000} onClose={() => setSuccess(false)}>
-                <Alert onClose={() => setSuccess(false)} severity="success">Product updated successfully!</Alert>
+                <Alert onClose={() => setSuccess(false)} severity="success">
+                    Product updated successfully!
+                </Alert>
             </Snackbar>
         </Box>
     );

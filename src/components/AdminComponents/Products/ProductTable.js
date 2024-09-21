@@ -13,7 +13,7 @@ export default function ProductTable({ color }) {
   const [products, setProducts] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(2); // Number of products per page
+  const [productsPerPage] = useState(6); // Number of products per page
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export default function ProductTable({ color }) {
           </div>
         </div>
         <div className="block w-full overflow-x-auto">
-          <table className="items-center w-full bg-transparent border-collapse">
+          <table className="items-center w-full bg-transparent border-collapse ">
             <thead>
             <tr>
               {["Product Name", "Price", "Stock Quantity", "Image",""].map(
@@ -134,7 +134,7 @@ export default function ProductTable({ color }) {
             </thead>
             <tbody>
             {currentProducts.map((product) => (
-                <tr key={product.productId}>
+                <tr key={product.productId} className="font-bold">
                   <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left">
                   <span
                       className={`font-bold ${

@@ -13,6 +13,7 @@ const Cart = () => {
     const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
     const [discountAmount, setDiscountAmount] = useState(0);
     const [discountPercentage, setDiscountPercentage] = useState(0);
+    const [UsageNumbers, setUsageNumbers] = useState(0);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -24,10 +25,11 @@ const Cart = () => {
         localStorage.setItem('cart', JSON.stringify(cartItems));
     }, [cartItems]);
 
+    // Store finalPrice in local storage
     useEffect(() => {
         const finalPrice = getTotalPrice() - discountAmount;
         localStorage.setItem('finalAmount', finalPrice.toFixed(2));
-    }, [discountAmount, cartItems]); // Update when discountAmount or cartItems change
+    }, [discountAmount, cartItems]);
 
     const handleQuantityChange = (productId, newQuantity) => {
         setCartItems(prevItems =>
@@ -41,7 +43,9 @@ const Cart = () => {
         setCartItems(prevItems => prevItems.filter(item => item.productId !== productId));
     };
 
+    // Checkout logic retrieves finalPrice from local storage
     const handleCheckout = () => {
+        const finalPrice = localStorage.getItem('finalAmount');
         navigate('/order', { state: { finalPrice } }); // Pass final price to order
     };
 
@@ -60,6 +64,47 @@ const Cart = () => {
             const validCoupon = coupons.find(coupon => coupon.code === discountCode);
 
             if (validCoupon) {
+                if (!validCoupon.isActive) {
+                    setAlert({ open: true, message: 'This discount code is inactive.', severity: 'error' });
+                    return;
+                }
+
+                if (validCoupon.minimumOrderAmount > getTotalPrice()) {
+                    setAlert({
+                        open: true,
+                        message: `The minimum order amount is $${validCoupon.minimumOrderAmount}. Please increase your total price.`,
+                        severity: 'error'
+                    });
+                    return;
+                }
+
+                if (Date.now() < new Date(validCoupon.startDate)) {
+                    setAlert({
+                        open: true,
+                        message: `This discount code is not yet active. It will be available from ${new Date(validCoupon.startDate).toLocaleDateString()}.`,
+                        severity: 'error'
+                    });
+                    return;
+                }
+
+                if (Date.now() > new Date(validCoupon.expiryDate + 1)) {
+                    setAlert({
+                        open: true,
+                        message: `This discount code has expired. It was valid until ${new Date(validCoupon.expiryDate).toLocaleDateString()}.`,
+                        severity: 'error'
+                    });
+                    return;
+                }
+
+                if (validCoupon.usageLimit && validCoupon.timesUsed >= validCoupon.usageLimit) {
+                    setAlert({
+                        open: true,
+                        message: `This discount code has reached its usage limit.`,
+                        severity: 'error'
+                    });
+                    return;
+                }
+
                 const discount = validCoupon.discountPercentage || 0;
                 const totalPrice = getTotalPrice();
                 const discountAmount = (totalPrice * discount) / 100;
@@ -67,8 +112,21 @@ const Cart = () => {
                 setDiscountAmount(discountAmount);
                 setDiscountPercentage(discount);
                 setAlert({ open: true, message: 'Discount applied!', severity: 'success' });
+
+                // Increment the usage number
+                setUsageNumbers(prevCount => prevCount + 1);
+
+                // Update the TimesUsed for the coupon
+                const couponId = validCoupon.couponId;
+                const updatedCouponDto = { ...validCoupon, timesUsed: validCoupon.timesUsed + 1 };
+
+                await CouponService.updateCoupon(couponId, updatedCouponDto);
             } else {
-                setAlert({ open: true, message: 'Invalid discount code.', severity: 'error' });
+                setAlert({
+                    open: true,
+                    message: 'Invalid discount code.',
+                    severity: 'error'
+                });
             }
         } catch (error) {
             setAlert({ open: true, message: 'Error validating discount code.', severity: 'error' });
@@ -81,7 +139,7 @@ const Cart = () => {
 
     const getTotalPrice = () => {
         return cartItems.reduce((total, item) =>
-            total + ((item.productPrice || 0) * (item.quantity || 1)), 0
+            total + ((item.finalPrice || 0) * (item.quantity || 1)), 0
         );
     };
 
@@ -122,8 +180,8 @@ const Cart = () => {
                                     />
                                     <Box sx={{ flexGrow: 1, marginLeft: 2 }}>
                                         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{item.productName}</Typography>
-                                        <Typography variant="body1">${(item.productPrice || 0).toFixed(2)}</Typography>
-                                        <Typography variant="body2" color="textSecondary">Total: ${(item.productPrice * item.quantity).toFixed(2)}</Typography>
+                                        <Typography variant="body1">${item.finalPrice}</Typography>
+                                        <Typography variant="body2" color="textSecondary">Total: ${(item.finalPrice * item.quantity).toFixed(2)}</Typography>
                                     </Box>
                                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                         <IconButton onClick={() => handleQuantityChange(item.productId, item.quantity - 1)}>
@@ -146,35 +204,37 @@ const Cart = () => {
                                 </Box>
                             ))}
                             <Divider sx={{ marginY: 4 }} />
-                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 4 }}>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 600 }}>
-                                    <TextField
-                                        value={discountCode}
-                                        onChange={handleDiscountCodeChange}
-                                        label="Discount Code"
-                                        variant="outlined"
-                                        sx={{ marginBottom: 2, width: '100%' }}
-                                    />
-                                    <Button variant="contained" color="secondary" onClick={applyDiscount} sx={{ width: '100%' }}>
-                                        Apply Discount
-                                    </Button>
-                                </Box>
-                                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: 4, width: '100%', maxWidth: 600 }}>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                                        Total: ${(totalPrice).toFixed(2)}
-                                    </Typography>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2, color: 'green' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Typography variant="h6">Total Price: ${totalPrice.toFixed(2)}</Typography>
+                                {discountAmount > 0 && (
+                                    <Typography variant="h6" sx={{ color: 'green' }}>
                                         Discount ({discountPercentage}%): -${discountAmount.toFixed(2)}
                                     </Typography>
-                                    <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 2 }}>
-                                        Final Total: ${finalPrice.toFixed(2)}
-                                    </Typography>
-                                    <Link to={"/order"}>
-                                        <Button variant="contained" color="primary" onClick={handleCheckout} sx={{ width: '100%' }}>
-                                            Proceed to Checkout
-                                        </Button>
-                                    </Link>
-                                </Box>
+                                )}
+                                <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                                    Final Price: ${finalPrice.toFixed(2)}
+                                </Typography>
+                            </Box>
+                            <Divider sx={{ marginY: 4 }} />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <TextField
+                                    label="Discount Code"
+                                    value={discountCode}
+                                    onChange={handleDiscountCodeChange}
+                                    sx={{ width: '50%' }}
+                                />
+                                <Button variant="outlined" onClick={applyDiscount}>Apply Discount</Button>
+                            </Box>
+                            <Divider sx={{ marginY: 4 }} />
+                            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleCheckout}
+                                    sx={{ padding: '10px 50px', fontSize: '16px', fontWeight: 'bold' }}
+                                >
+                                    Proceed to Checkout
+                                </Button>
                             </Box>
                         </Box>
                     )}

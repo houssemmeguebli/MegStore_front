@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-    Grid, Card, CardMedia, CardContent, Typography, Button, Box, CircularProgress, IconButton,
-    Accordion, AccordionSummary, AccordionDetails, Rating, TextField, MenuItem
+    Grid, Card, CardMedia, CardContent, Typography, Button, Box, CircularProgress, Accordion,
+    AccordionSummary, AccordionDetails
 } from '@mui/material';
-import { ExpandMore, ShoppingCart, Star } from '@mui/icons-material';
+import { ExpandMore, ShoppingCart } from '@mui/icons-material';
 import CategoryService from "../../../_services/CategoryService";
 import ProductService from "../../../_services/ProductService";
 import Navbar from "../../Navbars/AuthNavbar";
 import Footer from "../../Footers/Footer";
 import Swal from 'sweetalert2';
-import {styled} from "@mui/joy";
+import { styled } from "@mui/joy";
 
 const ProductDetail = () => {
     const { productId } = useParams();
@@ -21,7 +21,6 @@ const ProductDetail = () => {
     const [mainImage, setMainImage] = useState('');
     const [quantity, setQuantity] = useState(1);
     const [expanded, setExpanded] = useState(false);
-    const [reviews, setReviews] = useState([]);
 
     useEffect(() => {
         const fetchProductDetails = async () => {
@@ -35,7 +34,6 @@ const ProductDetail = () => {
                     if (productData.categoryId) {
                         const category = await CategoryService.getCategoryById(productData.categoryId);
                         setCategoryName(category.categorydName);
-
                         const related = await ProductService.getProductsByCategoryId(productData.categoryId);
                         setRelatedProducts(related.filter(p => p.productId !== productId));
                     }
@@ -48,11 +46,30 @@ const ProductDetail = () => {
         };
 
         fetchProductDetails();
-    }, [productId]);
+    }, [product]);
 
     const handleAddToCart = () => {
         const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
-        const updatedCart = [...cartItems, { ...product, quantity }];
+        const isProductInCart = cartItems.some(item => item.productId === product.productId);
+
+        if (isProductInCart) {
+            Swal.fire({
+                title: 'Product Already in Cart!',
+                text: `${product.productName} is already in your cart.`,
+                icon: 'info',
+                confirmButtonText: 'OK',
+                background: '#fff',
+                color: '#333',
+                confirmButtonColor: '#4CAF50',
+            });
+            return;
+        }
+
+        const finalPrice = product.discountPercentage > 0
+            ? (product.productPrice * (1 - product.discountPercentage / 100)).toFixed(2)
+            : product.productPrice.toFixed(2);
+
+        const updatedCart = [...cartItems, { ...product, quantity, finalPrice }];
         localStorage.setItem('cart', JSON.stringify(updatedCart));
         Swal.fire({
             title: 'Added to Cart!',
@@ -67,6 +84,13 @@ const ProductDetail = () => {
         setMainImage(`https://localhost:7048/${url}`);
     };
 
+    const calculateDiscountedPrice = () => {
+        if (product.discountPercentage > 0) {
+            return (product.productPrice * (1 - product.discountPercentage / 100)).toFixed(2);
+        }
+        return product.productPrice.toFixed(2);
+    };
+
     if (loading) return (
         <div className="flex justify-center items-center min-h-screen">
             <CircularProgress size={60} />
@@ -74,15 +98,21 @@ const ProductDetail = () => {
     );
 
     if (!product) return <p>No product found</p>;
-    const RelatedProductCard = styled(Card)({
+
+    const RelatedProductCard = styled(Card)(() => ({
         boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
         transition: 'transform 0.3s',
         '&:hover': { transform: 'scale(1.05)' }
-    });
+    }));
+
+    const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
+    const isProductInCart = cartItems.some(item => item.productId === product.productId);
+    const isAvailable = product.isAvailable;
+
     return (
         <>
             <Navbar />
-            <main className="py-16 px-4 sm:px-8 lg:px-16 bg-gray-50">
+            <main className="py-16 px-4 sm:px-8 lg:px-16 bg-gray-100">
                 <Grid container spacing={4} sx={{ maxWidth: '1200px', margin: '0 auto' }}>
                     {/* Product Image Section */}
                     <Grid item xs={12} md={6}>
@@ -91,7 +121,12 @@ const ProductDetail = () => {
                                 component="img"
                                 alt={product.productName}
                                 image={mainImage}
-                                sx={{ height: '500px', objectFit: 'cover', borderRadius: 2 }}
+                                sx={{
+                                    height: '500px',
+                                    objectFit: 'cover',
+                                    borderRadius: 2,
+                                    border: '1px solid #e0e0e0',
+                                }}
                                 onError={(e) => { e.target.src = 'https://via.placeholder.com/500x500'; }}
                             />
                             {/* Thumbnails */}
@@ -108,7 +143,7 @@ const ProductDetail = () => {
                                             borderRadius: 1,
                                             mx: 1,
                                             cursor: 'pointer',
-                                            border: mainImage === `https://localhost:7048/${url}` ? '2px solid #007bff' : 'none',
+                                            border: mainImage === `https://localhost:7048/${url}` ? '2px solid #007bff' : '1px solid transparent',
                                             transition: 'border-color 0.3s',
                                         }}
                                         onClick={() => handleThumbnailClick(url)}
@@ -127,11 +162,29 @@ const ProductDetail = () => {
                             <Typography variant="body2" color="text.secondary">
                                 Category: {categoryName}
                             </Typography>
-                            <Typography variant="h5" sx={{ my: 2, color: '#007bff', fontWeight: 'bold' }}>
-                                ${product.productPrice.toFixed(2)}
-                            </Typography>
+                            {/* Prices Display */}
+                            <Box sx={{ mb: 2 }}>
+                                {product.discountPercentage > 0 && (
+                                    <>
+                                        <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'red' }}>
+                                            ${product.productPrice.toFixed(2)}
+                                        </Typography>
+                                        <Typography variant="h5" sx={{ color: '#007bff', fontWeight: 'bold' }}>
+                                            ${calculateDiscountedPrice()}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ color: '#f39c12', fontWeight: 'bold' }}>
+                                            Save {product.discountPercentage}!
+                                        </Typography>
+                                    </>
+                                )}
+                                {product.discountPercentage === 0 && (
+                                    <Typography variant="h5" sx={{ color: '#007bff', fontWeight: 'bold' }}>
+                                        ${product.productPrice.toFixed(2)}
+                                    </Typography>
+                                )}
+                            </Box>
                             <Typography variant="body2" sx={{ mb: 2 }}>
-                                {product.isAvailable ? (
+                                {isAvailable ? (
                                     <span style={{ color: '#4caf50', fontWeight: 'bold' }}>In Stock</span>
                                 ) : (
                                     <span style={{ color: '#f44336', fontWeight: 'bold' }}>Out of Stock</span>
@@ -142,38 +195,26 @@ const ProductDetail = () => {
                                 variant="contained"
                                 startIcon={<ShoppingCart />}
                                 onClick={handleAddToCart}
-                                disabled={!product.isAvailable}
+                                disabled={!isAvailable || isProductInCart}
                                 sx={{
-                                    backgroundColor: '#007bff',
-                                    '&:hover': { backgroundColor: '#0056b3' },
+                                    backgroundColor: '#4caf50',
+                                    '&:hover': { backgroundColor: '#4caf50' },
                                     textTransform: 'none',
                                     py: 1.5,
                                     mb: 2
                                 }}
                             >
-                                Add to Cart
+                                {isProductInCart ? 'Already in Cart' : 'Add to Cart'}
                             </Button>
 
                             {/* Additional Information Section */}
                             <Accordion expanded={expanded === 'panel1'} onChange={() => setExpanded(expanded === 'panel1' ? false : 'panel1')}>
-                                <AccordionSummary expandIcon={<ExpandMore />}>
+                                <AccordionSummary expandIcon={<ExpandMore />} sx={{ backgroundColor: '#f0f0f0', borderRadius: 1 }}>
                                     <Typography variant="h6">Product Specifications</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
                                     <Typography variant="body2">
                                         {product.productDescription}
-                                    </Typography>
-                                </AccordionDetails>
-                            </Accordion>
-
-                            <Accordion expanded={expanded === 'panel2'} onChange={() => setExpanded(expanded === 'panel2' ? false : 'panel2')}>
-                                <AccordionSummary expandIcon={<ExpandMore />}>
-                                    <Typography variant="h6">FAQs</Typography>
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <Typography variant="body2">
-                                        - What is the return policy? <br />
-                                        - Can I get a warranty on this product?
                                     </Typography>
                                 </AccordionDetails>
                             </Accordion>
@@ -205,7 +246,7 @@ const ProductDetail = () => {
                                         <Button
                                             variant="outlined"
                                             sx={{ mt: 2 }}
-                                            href={`/shop/productDetails/${relatedProduct.productId}`}
+                                            href={'/shop/productDetails/${relatedProduct.productId}'}
                                         >
                                             View Product
                                         </Button>
@@ -215,7 +256,6 @@ const ProductDetail = () => {
                         ))}
                     </Grid>
                 </Box>
-
             </main>
             <Footer />
         </>

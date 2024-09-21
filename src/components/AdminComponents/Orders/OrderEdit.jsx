@@ -147,7 +147,10 @@ const OrderEdit = () => {
                 totalPrice: product.itemQuantity * product.productPrice, // Calculate totalPrice for each item
             })),
         };
-
+        // Check if the order status is Shipped (1)
+        if (formData.orderStatus === 1) {
+            requestPayload.shippedDate = new Date().toISOString();
+        }
         console.log("Request Payload:", requestPayload);
 
         try {
@@ -188,7 +191,7 @@ const OrderEdit = () => {
     if (error) return <Typography variant="h6" color="error">{error}</Typography>;
 
     return (
-        <Box sx={{ mt: 8, mx: 'auto', maxWidth: '1200px', padding: 3 }}>
+        <Box sx={{ m: 8, mx: 'auto', maxWidth: '1200px', padding: 3 }}>
             <Paper elevation={6} sx={{ p: 4, borderRadius: 2 }}>
                 <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
                     Edit Order
@@ -296,32 +299,37 @@ const OrderEdit = () => {
                             <Grid item xs={12} key={index}>
                                 <Card>
                                     <CardContent>
-                                        <Typography variant="h6">{product.productName}</Typography>
-                                        <Typography variant="body2">Price: ${product.productPrice.toFixed(2)}</Typography>
-                                        <Typography variant="body2">Image:</Typography>
-                                        <img src={product.imageUrl} alt={product.productName} style={{ width: '100px' }} />
+                                        <Grid container spacing={2} alignItems="center">
+                                            <Grid item xs={4}>
+                                                <Typography variant="h6">{product.productName}</Typography>
+                                                <Typography variant="body2">Price: ${product.productPrice.toFixed(2)}</Typography>
+                                            </Grid>
                                         {isProductEditEnabled && (
                                             <>
-                                                <TextField
+                                            <Grid item xs={4}>
+                                            <TextField
                                                     label="Quantity"
                                                     type="number"
                                                     name="itemQuantity"
                                                     value={product.itemQuantity}
                                                     onChange={(e) => handleProductChange(index, e)}
                                                     fullWidth
-                                                    sx={{ mb: 2 }}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    color="secondary"
+                                                    inputProps={{ min: 0 }}                                                />
+                                            </Grid>
+                                            <Grid item xs={2}>
+                                            <Button
+                                                    variant="outlined"
+                                                    color="error"
                                                     onClick={() => handleProductRemove(index)}
                                                     startIcon={<DeleteIcon />}
                                                     sx={{ mt: 1 }}
                                                 >
                                                     Remove
                                                 </Button>
+                                            </Grid>
                                             </>
                                         )}
+                                        </Grid>
                                     </CardContent>
                                 </Card>
                             </Grid>

@@ -2,12 +2,12 @@ import React, { useRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { Button } from "@mui/material";
 
 const DeliveryNotePDF = ({ order, totalPrice, products }) => {
     const [signatureURL, setSignatureURL] = useState('');
     const signatureRef = useRef(null);
 
-    // Save signature automatically when drawing is complete
     useEffect(() => {
         const handleSaveSignature = () => {
             if (signatureRef.current && !signatureURL && !signatureRef.current.isEmpty()) {
@@ -16,7 +16,6 @@ const DeliveryNotePDF = ({ order, totalPrice, products }) => {
         };
 
         const canvas = signatureRef.current.getCanvas();
-        // Save signature for both mouse and touch events
         canvas.addEventListener('mouseup', handleSaveSignature);
         canvas.addEventListener('touchend', handleSaveSignature);
 
@@ -37,7 +36,7 @@ const DeliveryNotePDF = ({ order, totalPrice, products }) => {
         const doc = new jsPDF();
         const todayDate = new Date().toLocaleDateString();
 
-        // Add Company Header or Logo
+        // Company Header
         doc.setFontSize(20);
         doc.setTextColor(40, 44, 47);
         doc.text('MegStore', 105, 20, { align: 'center' });
@@ -50,12 +49,12 @@ const DeliveryNotePDF = ({ order, totalPrice, products }) => {
         doc.setLineWidth(0.5);
         doc.line(14, 40, 196, 40);
 
-        // Title Section
+        // Title
         doc.setFontSize(18);
         doc.setTextColor(0);
         doc.text('Delivery Note', 14, 50);
 
-        // Order Details Section
+        // Order Details
         doc.setFontSize(12);
         doc.setTextColor(80);
         doc.text(`Order ID: ${order.orderId}`, 14, 65);
@@ -66,28 +65,32 @@ const DeliveryNotePDF = ({ order, totalPrice, products }) => {
         // Line Break
         doc.line(14, 110, 196, 110);
 
-        // Map orderItems to products using productsMap
+        // Map orderItems to products
         const items = order.orderItems.map(item => {
-            const product = productsMap.get(item.productId); // Retrieve product info from productsMap
+            const product = productsMap.get(item.productId);
+            const originalPrice = product?.productPrice || 0;
+            const discountPercentage = product?.discountPercentage || 0;
+            const finalPrice = originalPrice * (1 - discountPercentage / 100);
+            const totalPrice = finalPrice * item.quantity;
 
             return [
-                product?.productName || 'N/A',  // Product name from productsMap, fallback to 'N/A' if undefined
-                item.quantity || 0,             // Quantity from order item, fallback to 0 if undefined
-                product?.productPrice ? `$${product.productPrice.toFixed(2)}` : '$0.00',  // Product price from productsMap
-                product?.productPrice && item.quantity
-                    ? `$${(product.productPrice * item.quantity).toFixed(2)}`
-                    : '$0.00'  // Calculate total price (price * quantity)
+                product?.productName || 'N/A',
+                item.quantity || 0,
+                `$${originalPrice.toFixed(2)}`, // Original Price
+                `${discountPercentage}%`, // Discount Percentage
+                `$${finalPrice.toFixed(2)}`, // Final Price after discount
+                `$${totalPrice.toFixed(2)}` // Total Price
             ];
         });
 
         doc.autoTable({
-            head: [['Product Name', 'Quantity', 'Price', 'Total']],
+            head: [['Product Name', 'Quantity', 'Original Price', 'Discount %', 'Final Price', 'Total']],
             body: items,
             startY: 120,
             theme: 'grid',
             headStyles: {
-                fillColor: [41, 128, 185], // Blue header
-                textColor: [255, 255, 255], // White text in header
+                fillColor: [41, 128, 185],
+                textColor: [255, 255, 255],
                 halign: 'center'
             },
             bodyStyles: { valign: 'middle', halign: 'center' },
@@ -124,25 +127,19 @@ const DeliveryNotePDF = ({ order, totalPrice, products }) => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Signature</h2>
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 p-4">Signature</h2>
             <SignatureCanvas
                 ref={signatureRef}
-                canvasProps={{ width: 500, height: 200, className: 'sigCanvas border rounded-lg' }}
+                canvasProps={{ width: 500, height: 200, className: 'sigCanvas border rounded-lg m-2' }}
                 backgroundColor="#f5f5f5"
             />
-            <div className="mt-4 flex space-x-4">
-                <button
-                    onClick={clearSignature}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
+            <div className="mt-4 flex space-x-4 p-4 justify-center">
+                <Button onClick={clearSignature} variant="contained" color="white">
                     Clear Signature
-                </button>
-                <button
-                    onClick={generateBonDeLivraisonPDF}
-                    className="px-4 py-2 bg-green-500  rounded-lg hover:bg-green-600 transition-colors"
-                >
+                </Button>
+                <Button onClick={generateBonDeLivraisonPDF} variant="contained" color="primary" sx={{ marginLeft: "5px" }}>
                     Generate PDF
-                </button>
+                </Button>
             </div>
         </div>
     );

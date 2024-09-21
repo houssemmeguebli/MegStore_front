@@ -225,7 +225,7 @@ const Order = () => {
                                     {cartItems.map((item) => (
                                         <Box key={item.productId} sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                             <Typography variant="body1">{item.productName}</Typography>
-                                            <Typography variant="body1">${item.productPrice} x {item.quantity || 1}</Typography>
+                                            <Typography variant="body1">${item.finalPrice} x {item.quantity || 1}</Typography>
                                         </Box>
                                     ))}
                                 </Box>

@@ -1,10 +1,16 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import NotificationDropdown from "components/Dropdowns/NotificationDropdown.js";
 import UserDropdown from "components/Dropdowns/UserDropdown.js";
 
 export default function Sidebar() {
-  const [collapseShow, setCollapseShow] = React.useState("hidden");
+  const [collapseShow, setCollapseShow] = useState("hidden");
+  const location = useLocation();
+  const [activeLink, setActiveLink] = useState(location.pathname);
+
+  useEffect(() => {
+    setActiveLink(location.pathname);
+  }, [location]);
 
   return (
       <nav className="md:left-0 md:block md:fixed md:top-0 md:bottom-0 md:overflow-y-auto md:flex md:flex-col md:flex-nowrap md:overflow-hidden shadow-xl bg-white flex flex-wrap items-center justify-between relative md:w-64 z-10 py-4 px-6">
@@ -77,129 +83,26 @@ export default function Sidebar() {
             </h6>
             {/* Navigation */}
             <ul className="md:flex-col md:min-w-full flex flex-col list-none">
-              <li className="items-center">
-                <Link
-                    className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/admin/dashboard") !== -1
-                            ? "text-lightBlue-500 hover:text-lightBlue-600"
-                            : "text-blueGray-700 hover:text-blueGray-500"
-                    }`}
-                    to="/admin/dashboard"
-                >
-                  <i
-                      className={`fas fa-tv mr-2 text-sm ${
-                          window.location.href.indexOf("/admin/dashboard") !== -1
-                              ? "opacity-75"
-                              : "text-blueGray-300"
-                      }`}
-                  ></i>{" "}
-                  Dashboard
-                </Link>
-              </li>
-              <li className="items-center">
-                <Link
-                    className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/admin/categories") !== -1
-                            ? "text-lightBlue-500 hover:text-lightBlue-600"
-                            : "text-blueGray-700 hover:text-blueGray-500"
-                    }`}
-                    to="/admin/categories"
-                >
-                  <i
-                      className={`fas fa-table mr-2 text-sm ${
-                          window.location.href.indexOf("/admin/categories") !== -1
-                              ? "opacity-75"
-                              : "text-blueGray-300"
-                      }`}
-                  ></i>{" "}
-                  Categories
-                </Link>
-              </li>
-              <li className="items-center">
-                <Link
-                    className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/admin/products") !== -1
-                            ? "text-lightBlue-500 hover:text-lightBlue-600"
-                            : "text-blueGray-700 hover:text-blueGray-500"
-                    }`}
-                    to="/admin/products"
-                >
-                  <i
-                      className={`fas fa-box mr-2 text-sm ${
-                          window.location.href.indexOf("/admin/products") !== -1
-                              ? "opacity-75"
-                              : "text-blueGray-300"
-                      }`}
-                  ></i>{" "}
-                  Products
-                </Link>
-              </li>
-              <li className="items-center">
-                <Link
-                    className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/admin/orders") !== -1
-                            ? "text-lightBlue-500 hover:text-lightBlue-600"
-                            : "text-blueGray-700 hover:text-blueGray-500"
-                    }`}
-                    to="/admin/orders"
-                >
-                  <i
-                      className={`fas fa-shopping-cart mr-2 text-sm ${
-                          window.location.href.indexOf("/admin/orders") !== -1
-                              ? "opacity-75"
-                              : "text-blueGray-300"
-                      }`}
-                  ></i>{" "}
-                  Orders
-                </Link>
-              </li>
-              <li className="items-center">
-                <Link
-                    className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/admin/coupons") !== -1
-                            ? "text-lightBlue-500 hover:text-lightBlue-600"
-                            : "text-blueGray-700 hover:text-blueGray-500"
-                    }`}
-                    to="/admin/coupons"
-                >
-                  <i
-                      className={`fas fa-tags mr-2 text-sm ${
-                          window.location.href.indexOf("/admin/coupons") !== -1
-                              ? "opacity-75"
-                              : "text-blueGray-300"
-                      }`}
-                  ></i>{" "}
-                  Coupons
-                </Link>
-              </li>
-              <li className="items-center">
-                <Link
-                    className={`text-xs uppercase py-3 font-bold block ${
-                        window.location.href.indexOf("/admin/settings") !== -1
-                            ? "text-lightBlue-500 hover:text-lightBlue-600"
-                            : "text-blueGray-700 hover:text-blueGray-500"
-                    }`}
-                    to="/admin/settings"
-                >
-                  <i
-                      className={`fas fa-tools mr-2 text-sm ${
-                          window.location.href.indexOf("/admin/settings") !== -1
-                              ? "opacity-75"
-                              : "text-blueGray-300"
-                      }`}
-                  ></i>{" "}
-                  Settings
-                </Link>
-              </li>
-              <li className="items-center">
-                <Link
-                    className="text-blueGray-700 hover:text-blueGray-500 text-xs uppercase py-3 font-bold block"
-                    to="/profile"
-                >
-                  <i className="fas fa-user-circle text-blueGray-400 mr-2 text-sm"></i>{" "}
-                  Profile Page
-                </Link>
-              </li>
+              {[
+                { path: "/admin/dashboard", label: "Dashboard", icon: "fas fa-tv" },
+                { path: "/admin/categories", label: "Categories", icon: "fas fa-table" },
+                { path: "/admin/products", label: "Products", icon: "fas fa-box" },
+                { path: "/admin/orders", label: "Orders", icon: "fas fa-shopping-cart" },
+                { path: "/admin/coupons", label: "Coupons", icon: "fas fa-tags" },
+                { path: "/admin/settings", label: "Settings", icon: "fas fa-tools" },
+                { path: "/profile", label: "Profile Page", icon: "fas fa-user-circle" },
+              ].map(({ path, label, icon }) => (
+                  <li className="items-center" key={path}>
+                    <Link
+                        className={`text-xs uppercase py-3 font-bold block ${activeLink.includes(path) ? "text-lightBlue-500 hover:text-lightBlue-600" : "text-blueGray-700 hover:text-blueGray-500"}`}
+                        to={path}
+                        onClick={() => setActiveLink(path)}
+                    >
+                      <i className={`${icon} mr-2 text-sm ${activeLink.includes(path) ? "opacity-75" : "text-blueGray-300"}`}></i>
+                      {label}
+                    </Link>
+                  </li>
+              ))}
             </ul>
           </div>
         </div>

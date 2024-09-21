@@ -1,18 +1,26 @@
 import React, { useEffect, useState } from "react";
 import {
-    TextField,
-    Button,
+    Box,
+    Card,
+    CardContent,
     Typography,
+    Button,
     CircularProgress,
     Grid,
-    Box,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     Paper,
+    TextField,
     FormControlLabel,
-    Checkbox
+    Checkbox,
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import CouponService from "../../../_services/CouponService";
-import Swal from "sweetalert2"; // Adjust the path as necessary
+import Swal from "sweetalert2";
 
 export default function CouponDetails() {
     const { couponId } = useParams();
@@ -27,11 +35,12 @@ export default function CouponDetails() {
             try {
                 const data = await CouponService.getCouponById(couponId);
                 setCoupon(data);
+
             } catch (error) {
                 console.error("Error fetching coupon:", error);
+                setError("Failed to fetch coupon details.");
             }
         }
-
         fetchCoupon();
     }, [couponId]);
 
@@ -48,7 +57,6 @@ export default function CouponDetails() {
         setError('');
         setSuccess(false);
 
-        // Show confirmation dialog
         const result = await Swal.fire({
             title: 'Are you sure?',
             text: 'Do you want to save the changes to this coupon?',
@@ -59,17 +67,15 @@ export default function CouponDetails() {
         });
 
         if (result.isConfirmed) {
-            // Prepare data to send
             const couponData = {
                 ...coupon,
-                timesUsed: coupon.timesUsed || null // Ensure nullable type
+                timesUsed: coupon.timesUsed || null
             };
 
             try {
                 await CouponService.updateCoupon(couponId, couponData);
                 setSuccess(true);
                 setError('');
-                // Show success alert
                 await Swal.fire({
                     title: 'Success!',
                     text: 'Coupon updated successfully!',
@@ -80,8 +86,6 @@ export default function CouponDetails() {
             } catch (error) {
                 console.error("Error updating coupon:", error);
                 setError("Failed to update coupon. Please try again.");
-                setSuccess(false);
-                // Show error alert
                 await Swal.fire({
                     title: 'Error!',
                     text: 'Failed to update coupon. Please try again.',
@@ -92,11 +96,9 @@ export default function CouponDetails() {
                 setLoading(false);
             }
         } else {
-            setLoading(false); // Reset loading state if cancelled
+            setLoading(false);
         }
     };
-
-
 
     if (!coupon) {
         return (
@@ -108,136 +110,152 @@ export default function CouponDetails() {
 
     return (
         <Box sx={{ padding: '24px', marginTop: '10%' }}>
-            <Paper elevation={3} sx={{ padding: '24px' }}>
-                <Typography variant="h4" gutterBottom>Edit Coupon</Typography>
-                {error && <Typography color="error">{error}</Typography>}
-                {success && <Typography color="primary">Coupon updated successfully!</Typography>}
-                <br />
-                <Box component="form" sx={{ mt: 2 }} onSubmit={handleSubmit} noValidate autoComplete="off">
-                    <Grid container spacing={2} alignItems="center">
-                        {/* Coupon Code */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="code"
-                                label="Coupon Code"
-                                fullWidth
-                                value={coupon.code}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
-                            />
-                        </Grid>
+            <Grid container spacing={4}>
+                {/* Statistics Cards */}
+                <Grid item xs={12} md={6} lg={4}>
+                    <Card elevation={3}>
+                        <CardContent>
+                            <Typography variant="h6">Usage Limit</Typography>
+                            <Typography variant="h4">{coupon.usageLimit}</Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} md={6} lg={4}>
+                    <Card elevation={3}>
+                        <CardContent>
+                            <Typography variant="h6">Times Used</Typography>
+                            <Typography variant="h4">{coupon.timesUsed}</Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+                <Grid item xs={12} md={6} lg={4}>
+                    <Card elevation={3}>
+                        <CardContent>
+                            <Typography variant="h6">Active Status</Typography>
+                            <Typography variant="h4">{coupon.isActive ? "Active" : "Inactive"}</Typography>
+                        </CardContent>
+                    </Card>
+                </Grid>
+            </Grid>
 
-                        {/* Discount Percentage */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="discountPercentage"
-                                label="Discount Percentage"
-                                fullWidth
-                                type="number"
-                                value={coupon.discountPercentage}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
-                            />
-                        </Grid>
+            <Card sx={{ marginTop: '20px' }}>
+                <CardContent>
+                    <Typography variant="h4" gutterBottom>Edit Coupon</Typography>
+                    {error && <Typography color="error">{error}</Typography>}
+                    {success && <Typography color="primary">Coupon updated successfully!</Typography>}
+                    <Box component="form" sx={{ mt: 2 }} onSubmit={handleSubmit} noValidate autoComplete="off">
+                        <Grid container spacing={2}>
+                            {/* Coupon Code */}
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    name="code"
+                                    label="Coupon Code"
+                                    fullWidth
+                                    value={coupon.code}
+                                    onChange={handleChange}
+                                    required
+                                    variant="outlined"
+                                />
+                            </Grid>
 
-                        {/* Active Status */}
-                        <Grid item xs={12} sm={6}>
-                            <FormControlLabel
-                                control={
-                                    <Checkbox
-                                        name="isActive"
-                                        checked={coupon.isActive}
-                                        onChange={(e) => setCoupon({ ...coupon, isActive: e.target.checked })}
-                                    />
-                                }
-                                label="Is Active"
-                            />
-                        </Grid>
+                            {/* Discount Percentage */}
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    name="discountPercentage"
+                                    label="Discount Percentage"
+                                    fullWidth
+                                    type="number"
+                                    value={coupon.discountPercentage}
+                                    onChange={handleChange}
+                                    required
+                                    variant="outlined"
+                                />
+                            </Grid>
+                            {/* Start Date */}
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    name="startDate"
+                                    label="Start Date"
+                                    fullWidth
+                                    type="date"
+                                    value={new Date(coupon.startDate).toISOString().split('T')[0]}
+                                    onChange={handleChange}
+                                    required
+                                    variant="outlined"
+                                />
+                            </Grid>
 
-                        {/* Start Date */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="startDate"
-                                label="Start Date"
-                                fullWidth
-                                type="date"
-                                value={new Date(coupon.startDate).toISOString().split('T')[0]}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
-                            />
-                        </Grid>
+                            {/* Expiry Date */}
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    name="expiryDate"
+                                    label="Expiry Date"
+                                    fullWidth
+                                    type="date"
+                                    value={coupon.expiryDate ? new Date(coupon.expiryDate).toISOString().split('T')[0] : ''}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
 
-                        {/* Expiry Date */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="expiryDate"
-                                label="Expiry Date"
-                                fullWidth
-                                type="date"
-                                value={coupon.expiryDate ? new Date(coupon.expiryDate).toISOString().split('T')[0] : ''}
-                                onChange={handleChange}
-                                variant="outlined"
-                            />
-                        </Grid>
+                            {/* Minimum Order Amount */}
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    name="minimumOrderAmount"
+                                    label="Minimum Order Amount"
+                                    fullWidth
+                                    type="number"
+                                    value={coupon.minimumOrderAmount || ''}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
 
-                        {/* Minimum Order Amount */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="minimumOrderAmount"
-                                label="Minimum Order Amount"
-                                fullWidth
-                                type="number"
-                                value={coupon.minimumOrderAmount || ''}
-                                onChange={handleChange}
-                                variant="outlined"
-                            />
-                        </Grid>
+                            {/* Usage Limit */}
+                            <Grid item xs={12} sm={4}>
+                                <TextField
+                                    name="usageLimit"
+                                    label="Usage Limit"
+                                    fullWidth
+                                    type="number"
+                                    value={coupon.usageLimit || ''}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                />
+                            </Grid>
 
-                        {/* Usage Limit */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="usageLimit"
-                                label="Usage Limit"
-                                fullWidth
-                                type="number"
-                                value={coupon.usageLimit || ''}
-                                onChange={handleChange}
-                                variant="outlined"
-                            />
-                        </Grid>
+                            {/* Active Status */}
+                            <Grid item xs={12} sm={4}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            name="isActive"
+                                            checked={coupon.isActive}
+                                            onChange={(e) => setCoupon({ ...coupon, isActive: e.target.checked })}
+                                        />
+                                    }
+                                    label="Is Active"
+                                />
+                            </Grid>
 
-                        {/* Times Used */}
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name="timesUsed"
-                                label="Times Used"
-                                fullWidth
-                                type="number"
-                                value={coupon.timesUsed || ''}
-                                onChange={handleChange}
-                                variant="outlined"
-                            />
+                            {/* Submit Button */}
+                            <Grid item xs={12}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    type="submit"
+                                    fullWidth
+                                    disabled={loading}
+                                    size="large"
+                                >
+                                    {loading ? <CircularProgress size={24} /> : 'Save Changes'}
+                                </Button>
+                            </Grid>
                         </Grid>
+                    </Box>
+                </CardContent>
+            </Card>
 
-                        {/* Submit Button */}
-                        <Grid item xs={12}>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                type="submit"
-                                fullWidth
-                                disabled={loading}
-                                size="large"
-                            >
-                                {loading ? <CircularProgress size={24}/> : 'Save Changes'}
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </Box>
-            </Paper>
         </Box>
     );
 }

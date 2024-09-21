@@ -3,7 +3,30 @@ import { useParams, useNavigate } from 'react-router-dom';
 import OrderService from '../../../_services/OrderService';
 import ProductService from '../../../_services/ProductService';
 import DeliveryNotePDF from './DeliveryNotePDF';
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Tab, Tabs, Typography, Card, CardContent, CardHeader, Divider, Chip, Grid, Box, CircularProgress, Tooltip, IconButton } from '@mui/material';
+import {
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Tab,
+    Tabs,
+    Typography,
+    Card,
+    CardContent,
+    CardHeader,
+    Divider,
+    Chip,
+    Grid,
+    Box,
+    CircularProgress,
+    Tooltip,
+    IconButton,
+    Container
+} from '@mui/material';
 import { Edit, ArrowBack, MailOutline, AddShoppingCart, LocalShipping, TrackChanges } from '@mui/icons-material';
 import { FaCalendarAlt, FaShippingFast, FaNotesMedical } from 'react-icons/fa';
 
@@ -15,13 +38,14 @@ const OrderDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [tabIndex, setTabIndex] = useState(0);
-
+    const [totalPrice,setTotalPrice]=useState(0);
     useEffect(() => {
         const fetchOrderDetails = async () => {
             try {
                 const orderData = await OrderService.getOrderById(orderId);
                 setOrder(orderData);
-
+                setTotalPrice(orderData.totlaAmount)
+                console.log("orderData",orderData)
                 if (orderData.orderItems && Array.isArray(orderData.orderItems)) {
                     const productIds = orderData.orderItems.map(item => item.productId).filter(id => id != null);
                     const uniqueProductIds = [...new Set(productIds)];
@@ -49,10 +73,8 @@ const OrderDetails = () => {
     const orderItems = order.orderItems || [];
     const productsMap = new Map(products.map(product => [product.productId, product]));
     const formatPrice = (price) => price ? price.toFixed(2) : '0.00';
-    const totalPrice = orderItems.reduce((acc, item) => {
-        const product = productsMap.get(item.productId);
-        return acc + (product?.productPrice || 0) * (item.quantity || 0);
-    }, 0);
+
+
 
     const getStatusLabel = (status) => {
         switch (status) {
@@ -69,7 +91,7 @@ const OrderDetails = () => {
     const orderStatus = getStatusLabel(order.orderStatus);
 
     return (
-        <div className="container mx-auto p-6 lg:p-12 bg-gray-50 mt-20">
+        <Container className="container mx-auto p-6 lg:p-12 bg-gray-50 " sx={{ marginTop:"10%"}}>
             <Card className="overflow-hidden shadow-lg">
                 <CardHeader
                     title="Order Details"
@@ -97,7 +119,6 @@ const OrderDetails = () => {
                     >
                         <Tab label="Order Info" />
                         <Tab label="Products" />
-                        <Tab label="Order Notes" />
                     </Tabs>
 
                     {tabIndex === 0 && (
@@ -136,53 +157,49 @@ const OrderDetails = () => {
                                                             <TableCell>{order.customerEmail}</TableCell>
                                                         </TableRow>
                                                         <TableRow>
-                                                            <TableCell className="font-semibold text-gray-600">Shipping Tracking</TableCell>
-                                                            <TableCell>
-                                                                {order.trackingNumber ? (
-                                                                    <a href={`https://tracking.example.com/${order.trackingNumber}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                                                        Track Your Order
-                                                                    </a>
-                                                                ) : 'No tracking number available'}
-                                                            </TableCell>
+                                                            <TableCell className="font-semibold text-gray-600">Customer Address</TableCell>
+                                                            <TableCell>{order.customerAddress}</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell className="font-semibold text-gray-600">Customer Phone</TableCell>
+                                                            <TableCell>{order.customerPhone}</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell className="font-semibold text-gray-600">Customer Notes</TableCell>
+                                                            <TableCell>{order.orderNotes}</TableCell>
                                                         </TableRow>
                                                     </TableBody>
                                                 </Table>
                                             </TableContainer>
 
-                                            <Typography variant="body1" className="text-gray-600 mb-4">
-                                                <strong>Address:</strong> {order.customerAddress}
-                                            </Typography>
-                                            <Typography variant="body1" className="text-gray-600">
-                                                <strong>Phone:</strong> {order.customerPhone}
-                                            </Typography>
                                         </CardContent>
                                     </Card>
                                 </Grid>
                                 <Grid item xs={12} md={6}>
-                                    <Card className="mb-4 bg-white shadow-md">
+                                    <Card className="mb-6 bg-white shadow-lg rounded-lg">
                                         <CardHeader
                                             title="Order Summary"
-                                            subheader="A brief overview of the order."
+                                            titleTypographyProps={{ variant: 'h5', className: 'font-bold text-gray-800' }}
+                                            subheaderTypographyProps={{ variant: 'subtitle1', className: 'text-gray-600' }}
                                         />
+                                        <Divider />
                                         <CardContent>
-                                            <Typography variant="h6" className="text-lg font-semibold text-gray-700 mb-2">
-                                                Total Price: ${formatPrice(totalPrice)}
+                                            <Typography variant="h6" className="text-xl font-semibold text-gray-700 mb-4">
+                                                Total Price: <span className="text-green-600">${formatPrice(totalPrice)}</span>
                                             </Typography>
+
+                                            <Typography variant="body1" className="text-gray-600 mb-4">
+                                                You can extract a <strong>delivery note</strong> for this order, including all the product details. You also have the option to add your <strong>signature</strong> to the document before downloading the PDF.
+                                            </Typography>
+
+                                            {/* DeliveryNotePDF Component */}
                                             <DeliveryNotePDF order={order} totalPrice={totalPrice} products={products} />
-                                            <Box mt={2}>
-                                                <Tooltip title="Reorder this item" arrow>
-                                                    <IconButton
-                                                        variant="contained"
-                                                        color="secondary"
-                                                        onClick={() => navigate(`/order/reorder/${order.orderId}`)}
-                                                    >
-                                                        <AddShoppingCart />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Box>
+
                                         </CardContent>
                                     </Card>
                                 </Grid>
+
+
                             </Grid>
                         </div>
                     )}
@@ -199,49 +216,43 @@ const OrderDetails = () => {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell>Product</TableCell>
-                                            <TableCell align="right">Quantity</TableCell>
-                                            <TableCell align="right">Price</TableCell>
-                                            <TableCell align="right">Total</TableCell>
+                                            <TableCell align="center">Quantity</TableCell>
+                                            <TableCell align="center">Price</TableCell>
+                                            <TableCell align="center">Discount (%)</TableCell>
+                                            <TableCell align="center">Price After Discount</TableCell>
+                                            <TableCell align="center">Total</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
                                         {orderItems.map(item => {
                                             const product = productsMap.get(item.productId);
+                                            const discountPercentage = product?.discountPercentage || 0; // Assuming discountPercentage is a product property
+                                            const originalPrice = product?.productPrice || 0;
+                                            const finalPrice = originalPrice * (1 - discountPercentage / 100); // Calculate price after discount
+
                                             return (
                                                 <TableRow key={item.orderItemId}>
                                                     <TableCell>
                                                         <Box display="flex" alignItems="center">
-
                                                             <img
-                                                                src={product.imageUrls ? `https://localhost:7048/${product.imageUrls[0]}` : 'https://via.placeholder.com/64x64'}
+                                                                src={product?.imageUrls ? `https://localhost:7048/${product.imageUrls[0]}` : 'https://via.placeholder.com/64x64'}
                                                                 alt={product?.productName}
                                                                 className="w-16 h-16 object-cover mr-4"
                                                             />
                                                             <Typography variant="body1" className="text-gray-800">{product?.productName}</Typography>
                                                         </Box>
                                                     </TableCell>
-                                                    <TableCell align="right">{item.quantity}</TableCell>
-                                                    <TableCell align="right">${formatPrice(product?.productPrice || 0)}</TableCell>
-                                                    <TableCell align="right">${formatPrice((product?.productPrice || 0) * item.quantity)}</TableCell>
+                                                    <TableCell align="center">{item.quantity}</TableCell>
+                                                    <TableCell align="center">${formatPrice(originalPrice)}</TableCell>
+                                                    <TableCell align="center">{discountPercentage}%</TableCell>
+                                                    <TableCell align="center">${formatPrice(finalPrice)}</TableCell>
+                                                    <TableCell align="center">${formatPrice(finalPrice * item.quantity)}</TableCell>
                                                 </TableRow>
                                             );
                                         })}
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                        </div>
-                    )}
-
-                    {tabIndex === 2 && (
-                        <div className="p-4">
-                            <Card className="mb-4 bg-white shadow-md">
-                                <CardHeader title="Order Notes" />
-                                <CardContent>
-                                    <Typography variant="body1" className="text-gray-600">
-                                        {order.orderNotes || 'No notes available for this order.'}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
                         </div>
                     )}
                 </CardContent>
@@ -255,17 +266,9 @@ const OrderDetails = () => {
                     >
                         Back to Orders
                     </Button>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        startIcon={<MailOutline />}
-                        onClick={() => window.open(`mailto:${order.customerEmail}`)}
-                    >
-                        Contact Customer
-                    </Button>
                 </div>
             </Card>
-        </div>
+        </Container>
     );
 };
 

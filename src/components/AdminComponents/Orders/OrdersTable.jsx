@@ -12,7 +12,8 @@ export default function OrdersTable() {
     const [filteredOrders, setFilteredOrders] = useState([]);
     const [statusFilter, setStatusFilter] = useState("All"); // Filter state for Order Status
     const [currentPage, setCurrentPage] = useState(1);
-    const [ordersPerPage] = useState(3); // Number of orders per page
+    const [ordersPerPage] = useState(5); // Number of orders per page
+    const [sortOption, setSortOption] = useState("price-asc"); // Sort option state
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -30,15 +31,33 @@ export default function OrdersTable() {
     }, []);
 
     useEffect(() => {
+        applyFilters();
+    }, [statusFilter, orders, sortOption]);
+
+    const applyFilters = () => {
         let filtered = orders;
+
+        // Filter by status
         if (statusFilter !== "All") {
-            filtered = orders.filter((order) => order.orderStatus === Number(statusFilter));
+            filtered = filtered.filter((order) => order.orderStatus === Number(statusFilter));
         }
+
+        // Sorting functionality
+        switch (sortOption) {
+            case 'price-asc':
+                filtered.sort((a, b) => a.totlaAmount - b.totlaAmount);
+                break;
+            case 'price-desc':
+                filtered.sort((a, b) => b.totlaAmount - a.totlaAmount);
+                break;
+            default:
+                break;
+        }
+
         setFilteredOrders(filtered);
-    }, [statusFilter, orders]);
+    };
 
     const handleDelete = async (orderId) => {
-        // Show confirmation dialog
         const result = await Swal.fire({
             title: "Are you sure?",
             text: "You won't be able to revert this!",
@@ -75,6 +94,11 @@ export default function OrdersTable() {
         setCurrentPage(1); // Reset to first page when filter changes
     };
 
+    const handleSortChange = (event) => {
+        setSortOption(event.target.value);
+        setCurrentPage(1); // Reset to first page when sort changes
+    };
+
     // Pagination logic
     const indexOfLastOrder = currentPage * ordersPerPage;
     const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -100,15 +124,13 @@ export default function OrdersTable() {
                     <div className="relative w-full px-4 max-w-full flex-grow flex-1">
                         <h3 className="font-semibold text-lg text-blueGray-700">Orders Table</h3>
                         <FormControl margin="normal" sx={{ width: "maxWidth" }}>
-                            <InputLabel id="order-status-filter" sx={{ width: "maxWidth" }}>
-                                Order Status
-                            </InputLabel>
+                            <InputLabel id="order-status-filter">Oder Status</InputLabel>
                             <Select
-                                sx={{ width: "maxWidth" }}
                                 labelId="order-status-filter"
                                 value={statusFilter}
                                 onChange={handleStatusFilterChange}
                                 label="Order Status"
+                                sx={{ width: "maxWidth" }}
                             >
                                 <MenuItem value="All">All</MenuItem>
                                 <MenuItem value="0">Pending</MenuItem>
@@ -116,6 +138,17 @@ export default function OrdersTable() {
                                 <MenuItem value="2">Rejected</MenuItem>
                             </Select>
                         </FormControl>
+                        <FormControl margin="normal" sx={{ width: "maxWidth", marginLeft:"1%"}}>
+                        <Select
+                            value={sortOption}
+                            onChange={handleSortChange}
+                            sx={{ width: "maxWidth" }}
+                        >
+                            <MenuItem value="price-asc">Amount: Low to High</MenuItem>
+                            <MenuItem value="price-desc">Amount: High to Low</MenuItem>
+                        </Select>
+                        </FormControl>
+
                     </div>
                 </div>
             </div>
@@ -127,7 +160,7 @@ export default function OrdersTable() {
                             (heading) => (
                                 <th
                                     key={heading}
-                                    className="px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                                    className="px-6 align-middle border border-solid py-3 text-xs font-bold uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left bg-blueGray-50 text-blueGray-500 border-blueGray-100"
                                 >
                                     {heading}
                                 </th>
@@ -143,35 +176,35 @@ export default function OrdersTable() {
                                 <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left font-bold text-blueGray-600">
                                     {new Date(order.orderDate).toLocaleDateString()}
                                 </td>
-                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs font-bold whitespace-nowrap p-4">
                                     {order.shippedDate
                                         ? new Date(order.shippedDate).toLocaleDateString()
                                         : "Not Shipped"}
                                 </td>
-                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 font-bold text-xs whitespace-nowrap p-4">
                                     {order.customerName}
                                 </td>
-                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
+                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 font-bold text-xs whitespace-nowrap p-4">
                                     ${order.totlaAmount}
                                 </td>
                                 <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                                    <Chip label={label} color={color}/>
+                                    <Chip label={label} color={color} />
                                 </td>
-                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right">
+                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 font-bold text-xs whitespace-nowrap p-4 text-right">
                                     <div className="flex justify-end space-x-2">
                                         <IconButton
                                             onClick={() => handleDelete(order.orderId)}
                                             className="text-red-500 hover:text-red-700"
                                             title="Delete"
                                         >
-                                            <DeleteIcon/>
+                                            <DeleteIcon />
                                         </IconButton>
                                         <IconButton
                                             onClick={() => handleViewDetails(order.orderId)}
                                             className="text-green-500 hover:text-green-700"
                                             title="View Details"
                                         >
-                                            <VisibilityIcon/>
+                                            <VisibilityIcon />
                                         </IconButton>
                                     </div>
                                 </td>
@@ -182,7 +215,7 @@ export default function OrdersTable() {
                 </table>
             </div>
             <div className="p-4 flex justify-center items-center">
-            <Pagination
+                <Pagination
                     count={Math.ceil(filteredOrders.length / ordersPerPage)}
                     page={currentPage}
                     onChange={handlePageChange}

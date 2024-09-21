@@ -75,13 +75,13 @@ export default function CouponTable() {
             </div>
 
             <div className="block w-full overflow-x-auto">
-                <table className="items-center w-full bg-transparent border-collapse">
+                <table className="items-center w-full bg-transparent border-collapse  ">
                     <thead>
-                    <tr>
+                    <tr  >
                         {["Coupon Code", "Discount (%)", "Active", "Start Date", "Expiry Date", ""].map((heading) => (
                             <th
                                 key={heading}
-                                className="px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left bg-blueGray-50 text-blueGray-500 border-blueGray-100"
+                                className="px-6 font-bold align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left bg-blueGray-50 text-blueGray-500 border-blueGray-100"
                             >
                                 {heading}
                             </th>
@@ -90,7 +90,7 @@ export default function CouponTable() {
                     </thead>
                     <tbody>
                     {currentCoupons.map((coupon) => (
-                        <tr key={coupon.couponId}>
+                        <tr key={coupon.couponId}className="font-bold">
                             <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left font-bold text-blueGray-600">
                                 {coupon.code}
                             </td>
