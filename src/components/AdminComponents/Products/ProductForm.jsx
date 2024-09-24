@@ -76,6 +76,7 @@ const ProductForm = () => {
             const response = await ProductService.createProduct(product, imageFiles);
             console.log('Product added:', response);
             setSuccess(true);
+
             setProduct({
                 productName: '',
                 productDescription: '',
@@ -88,6 +89,7 @@ const ProductForm = () => {
                 ItemQuantiy: '',  // Reset this field too
             });
             setImageFiles([]); // Clear selected files
+          //  window.location.reload();
         } catch (error) {
             console.error('Error adding product:', error);
             setError('Failed to add product. Please try again.');

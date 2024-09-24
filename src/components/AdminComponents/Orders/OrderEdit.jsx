@@ -6,6 +6,8 @@ import Swal from "sweetalert2";
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CategoryService from "../../../_services/CategoryService";
+import ProductService from "../../../_services/ProductService";
 
 const OrderEdit = () => {
     const [order, setOrder] = useState(null);
@@ -140,20 +142,65 @@ const OrderEdit = () => {
             customerEmail: formData.customerEmail || '',
             customerPhone: formData.customerPhone || '',
             orderNotes: formData.orderNotes || '',
-            totlaAmount:totalAmount,
+            TotlaAmount: totalAmount, // Corrected typo: totlaAmount -> totalAmount
             orderItems: formData.products.map(product => ({
                 orderItemId: product.orderItemId || 0, // Ensure orderItemId is sent, or default to 0 for new items
+                productId: product.productId, // Include productId to fetch product details
                 quantity: product.itemQuantity,
                 totalPrice: product.itemQuantity * product.productPrice, // Calculate totalPrice for each item
             })),
         };
+
         // Check if the order status is Shipped (1)
         if (formData.orderStatus === 1) {
             requestPayload.shippedDate = new Date().toISOString();
+
+            // Loop through each order item to update stock quantity
+            for (const item of requestPayload.orderItems) {
+                try {
+                    // Fetch product by productId
+                    const product = await ProductService.getProductById(item.productId);
+
+                    if (product) {
+                        // Subtract the item quantity from stock quantity
+                        const newStockQuantity = product.stockQuantity - item.quantity; // Corrected to use quantity
+
+                        // Ensure stockQuantity doesn't go below 0
+                        if (newStockQuantity <= 0) {
+                            product.stockQuantity = 0;
+                            product.isAvailable = false; // Set isAvailable to false when stock reaches 0
+                        } else {
+                            product.stockQuantity = newStockQuantity; // Update stock quantity
+                        }
+
+                        const updatedProduct = {
+                            ...product,
+                            stockQuantity: product.stockQuantity,
+                            isAvailable: product.isAvailable, // Include isAvailable in the updated product
+                        };
+
+
+                        // Update the product's stock quantity
+                        await ProductService.updateProduct(item.productId, updatedProduct);
+
+                        console.log(`Updated stock for product ${item.productId}:`, product.stockQuantity);
+                    }
+                } catch (err) {
+                    console.error(`Error updating stock for product ${item.productId}:`, err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: `Failed to update stock for product ${item.productId}. ${err.response?.data?.message || err.message}`,
+                    });
+                    return; // Exit if there's an error in updating the stock
+                }
+            }
         }
+
         console.log("Request Payload:", requestPayload);
 
         try {
+            // Update order with the updated items
             await OrderService.updateOrderWithItems(orderId, requestPayload);
             Swal.fire({
                 icon: 'success',

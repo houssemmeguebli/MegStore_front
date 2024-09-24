@@ -22,6 +22,7 @@ const ProductList = ({ products }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+
         const fetchCategories = async () => {
             const categoryIds = [...new Set(products.map(product => product.categoryId))];
             const fetchedCategories = {};

@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import CategoryService from "../../_services/CategoryService";
 import { Slider, Typography, Switch, Divider } from "@mui/material";
 
-const FilterSidebar = ({ onFilterChange }) => {
+const FilterSidebar = ({ onFilterChange,products }) => {
     const [categories, setCategories] = useState([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const [priceRange, setPriceRange] = useState([0, 1000]);
+    const [priceRange, setPriceRange] = useState([0, 100000]); // Default value until fetched from products
+    const [minPrice, setMinPrice] = useState(0);
+    const [maxPrice, setMaxPrice] = useState(100000); // Default max value
     const [searchTerm, setSearchTerm] = useState('');
     const [isAvailable, setIsAvailable] = useState(false);
 
@@ -13,17 +15,29 @@ const FilterSidebar = ({ onFilterChange }) => {
         const fetchCategories = async () => {
             try {
                 const categoryList = await CategoryService.getAllCategories();
-                console.log("categoryList",categoryList)
                 setCategories(categoryList);
             } catch (err) {
                 console.error('Failed to fetch categories:', err);
             }
         };
 
+        const fetchProductPriceRange = async () => {
+            try {
+                const productPrices = products.map(product => product.productPrice);
+                const minPrice = Math.min(...productPrices);
+                const maxPrice = Math.max(...productPrices);
+                setMinPrice(minPrice);
+                setMaxPrice(maxPrice);
+                setPriceRange([minPrice, maxPrice]); // Set initial price range
+            } catch (err) {
+                console.error('Failed to fetch product prices:', err);
+            }
+        };
+
         fetchCategories();
+        fetchProductPriceRange();
     }, []);
 
-    // Synchronize filter changes
     const updateFilters = (newFilters = {}) => {
         onFilterChange({
             categories: selectedCategories,
@@ -63,10 +77,15 @@ const FilterSidebar = ({ onFilterChange }) => {
 
     const handleResetFilters = () => {
         setSelectedCategories([]);
-        setPriceRange([0, 1000]);
+        setPriceRange([minPrice, maxPrice]);
         setSearchTerm('');
         setIsAvailable(false);
-        updateFilters({ categories: [], priceRange: [0, 1000], isAvailable: false });
+
+        updateFilters({
+            categories: [],
+            priceRange: [minPrice, maxPrice],
+            isAvailable: false
+        });
     };
 
     return (
@@ -74,21 +93,8 @@ const FilterSidebar = ({ onFilterChange }) => {
             <div className="bg-white p-4 shadow-lg rounded-lg space-y-6 border border-gray-200">
                 <h4 className="text-2xl font-bold mb-4">Filters</h4>
 
-                {/* Availability Filter
-                <div className="flex justify-between items-center mb-4">
-                    <h5 className="text-xl font-semibold text-gray-800">Availability</h5>
-                    <Switch
-                        checked={isAvailable}
-                        onChange={handleAvailabilityChange}
-                        color="primary"
-                        inputProps={{ 'aria-label': 'availability toggle' }}
-                    />
-                    <Typography>{isAvailable ? "In Stock" : "Out of Stock"}</Typography>
-                </div>
-                */}
                 <Divider />
 
-                {/* Search Bar for Categories */}
                 <div className="mb-4">
                     <input
                         type="text"
@@ -101,7 +107,6 @@ const FilterSidebar = ({ onFilterChange }) => {
 
                 <Divider />
 
-                {/* Categories Section */}
                 <div>
                     <h5 className="text-xl font-semibold mb-4 text-gray-800 p-2">Categories</h5>
                     <div className="flex flex-col gap-3">
@@ -127,15 +132,14 @@ const FilterSidebar = ({ onFilterChange }) => {
 
                 <Divider />
 
-                {/* Price Range Filter */}
                 <div>
                     <h5 className="text-lg font-semibold mb-2">Price Range</h5>
                     <Slider
                         value={priceRange}
                         onChange={handlePriceRangeChange}
                         valueLabelDisplay="auto"
-                        min={0}
-                        max={1000}
+                        min={minPrice}
+                        max={maxPrice}
                         step={10}
                         aria-labelledby="price-range-slider"
                         className="w-full"
@@ -155,7 +159,6 @@ const FilterSidebar = ({ onFilterChange }) => {
 
                 <Divider />
 
-                {/* Buttons */}
                 <div className="flex gap-4">
                     <button
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 w-full"

@@ -4,6 +4,7 @@ import { IconButton, MenuItem, Select, FormControl, InputLabel, Pagination } fro
 import Swal from "sweetalert2";
 import ProductService from "../../../_services/ProductService";
 import { useNavigate } from "react-router-dom";
+import ProductStatistics from "./ProductStatistics";
 
 // Emoji for actions
 const viewIcon = "👁️";
@@ -84,6 +85,9 @@ export default function ProductTable({ color }) {
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
 
   return (
+      <>
+        <ProductStatistics products={products} />
+
       <div
           className={`relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded ${
               color === "light" ? "bg-white" : "bg-lightBlue-900 text-white"
@@ -191,6 +195,8 @@ export default function ProductTable({ color }) {
             ))}
             </tbody>
           </table>
+
+
         </div>
         <div className="p-4 flex justify-center items-center">
           <Pagination
@@ -200,7 +206,9 @@ export default function ProductTable({ color }) {
               color="primary"
           />
         </div>
+
       </div>
+      </>
   );
 }
 

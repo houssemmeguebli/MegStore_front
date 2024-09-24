@@ -6,6 +6,8 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useNavigate } from "react-router-dom";
 import OrderService from "../../../_services/OrderService"; // Adjust import according to your file structure
 import Swal from "sweetalert2";
+import ProductStatistics from "../Products/ProductStatistics";
+import OrderStatistics from "./OrderStatistics";
 
 export default function OrdersTable() {
     const [orders, setOrders] = useState([]);
@@ -118,6 +120,8 @@ export default function OrdersTable() {
     };
 
     return (
+        <>
+        <OrderStatistics orders={orders} />
         <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded bg-white">
             <div className="rounded-t mb-0 px-4 py-3 border-0">
                 <div className="flex flex-wrap items-center">
@@ -223,6 +227,7 @@ export default function OrdersTable() {
                 />
             </div>
         </div>
+        </>
     );
 }
 

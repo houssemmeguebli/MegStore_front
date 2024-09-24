@@ -106,7 +106,7 @@ export default function Shop() {
                         </section>
                         {/* Main Content */}
                         <div className="flex flex-col lg:flex-row gap-4 ">
-                            <FilterSidebar onFilterChange={handleFilterChange}/>
+                            <FilterSidebar onFilterChange={handleFilterChange} products={products} />
                             <div className="w-full lg:w-9/12 px-4">
                                 {/* Search and Sort Controls */}
                                 <div className="mb-4 flex flex-col lg:flex-row items-center justify-between gap-4">
