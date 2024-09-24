@@ -28,6 +28,15 @@ class UserService {
             throw error;
         }
     }
+    async GetOrdersByCustomerIdAsync(userId) {
+        try {
+            const response = await axios.get(`${this.baseUrl}/customerOrders/${userId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching Orders with customerId ${userId}:`, error);
+            throw error;
+        }
+    }
 
     // Update an existing user
     async updateUser(userId, userDto) {

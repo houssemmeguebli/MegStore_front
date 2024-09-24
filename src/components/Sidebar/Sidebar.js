@@ -89,6 +89,7 @@ export default function Sidebar() {
                 { path: "/admin/products", label: "Products", icon: "fas fa-box" },
                 { path: "/admin/orders", label: "Orders", icon: "fas fa-shopping-cart" },
                 { path: "/admin/coupons", label: "Coupons", icon: "fas fa-tags" },
+                { path: "/admin/customers", label: "Customers", icon: "fas fa-users" },
                 { path: "/admin/settings", label: "Settings", icon: "fas fa-tools" },
                 { path: "/profile", label: "Profile Page", icon: "fas fa-user-circle" },
               ].map(({ path, label, icon }) => (

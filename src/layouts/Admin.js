@@ -19,6 +19,8 @@ import Orders from "../views/BackOffice/Orders";
 import OrderEdit from "../components/AdminComponents/Orders/OrderEdit";
 import Coupons from "../views/BackOffice/Coupons";
 import CouponDetails from "../components/AdminComponents/Coupons/CouponDetails";
+import Customers from "../views/BackOffice/Customers";
+import CustomerDetails from "../components/AdminComponents/Customers/CustomerDetails";
 
 export default function Admin() {
     return (
@@ -37,8 +39,9 @@ export default function Admin() {
                         <Route path="categories" element={<Categories />} />
                         <Route path="categories/:categoryId" element={<CategoriesDetails/>} />
                         <Route path="coupons" element={<Coupons />} />
+                        <Route path="customers/:customerId" element={<CustomerDetails/>} />
+                        <Route path="customers" element={<Customers/>} />
                         <Route path="coupons/:couponId" element={<CouponDetails />} />
-
                         <Route path="orders/:orderId" element={<OrderDetails/>} />
                         <Route path="orders/edit/:orderId" element={<OrderEdit/>} />
 
