@@ -15,6 +15,9 @@ import Shop from "./views/frontOfiice/Shop";
 import Cart from "./views/frontOfiice/Cart";
 import Order from "./views/frontOfiice/Order";
 import ProductDetail from "./components/FrontOfficeComponents/Product/ProductDetail";
+import CustomerProfile from "./views/frontOfiice/CustomerProfile";
+import CustomerOrdersFront from "./components/FrontOfficeComponents/Customer/CustomerOrdersFront";
+import CustomerOrderEdit from "./components/FrontOfficeComponents/Customer/CustomerOrderEdit";
 
 
 
@@ -32,6 +35,9 @@ root.render(
             <Route path="/shop" element={<Shop />} />
             <Route path="/shop/productDetails/:productId" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/customerProfile" element={<CustomerProfile />} />
+            <Route path="/customerProfile/orders/:orderId" element={<CustomerOrdersFront />} />
+            <Route path="/customerProfile/orders/edit/:orderId" element={<CustomerOrderEdit />} />
             <Route path="/order" element={<Order />} />
             <Route path="/" element={<Landing />} />
             {/* Redirect for all unmatched routes */}

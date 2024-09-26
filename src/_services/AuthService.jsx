@@ -114,6 +114,7 @@ class AuthService {
                     id: decodedToken.id,
                     role: decodedToken.role,
                     email: decodedToken.email,
+                    fullName:decodedToken.fullName,
                 };
             } catch (error) {
                 console.error('Error decoding token:', error);
@@ -124,4 +125,4 @@ class AuthService {
     }
 }
 
-export default AuthService;
+export default new AuthService();

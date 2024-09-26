@@ -3,15 +3,12 @@ import UserService from "../../../_services/UserService";
 import { useParams } from "react-router-dom";
 import Swal from 'sweetalert2';
 import { Box, Button } from "@mui/material";
-import CustomerOrders from "./CustomerOrders";
 import { format } from "date-fns";
 
-export default function CustomerDetails ({ currentUser }){
-    const currentRole=1;
+export default function CustomerInfo({ currentUser }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
-    const { customerId } = useParams();
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -27,7 +24,7 @@ export default function CustomerDetails ({ currentUser }){
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const data = await UserService.getUserById(customerId||currentUser.id);
+                const data = await UserService.getUserById(currentUser.id);
                 setUser(data);
                 setFormData({
                     fullName: data.fullName,
@@ -48,7 +45,7 @@ export default function CustomerDetails ({ currentUser }){
         };
 
         fetchUser();
-    }, [customerId]);
+    }, [currentUser.id]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -96,7 +93,7 @@ export default function CustomerDetails ({ currentUser }){
 
     const handleSaveClick = async () => {
         try {
-            await UserService.updateUser(customerId, formData);
+            await UserService.updateUser(currentUser.id, formData);
             setUser(formData); // Update user state with form data
             setEditMode(false); // Exit edit mode after saving
             Swal.fire("Success", "User updated successfully", "success");
@@ -115,7 +112,6 @@ export default function CustomerDetails ({ currentUser }){
     }
 
     return (
-        <>
         <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
             <div className="rounded-t bg-white mb-0 px-6 py-6">
                 <div className="text-center flex justify-between">
@@ -154,7 +150,7 @@ export default function CustomerDetails ({ currentUser }){
                         Customer Information
                     </h6>
                     <div className="flex flex-wrap">
-                        <div className="w-full lg:w-6/12 px-4">
+                        <div className="w-full sm:w-6/12 xs:w-12/12  px-4 mb-4">
                             <div className="relative w-full mb-3">
                                 <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Full Name
@@ -170,7 +166,7 @@ export default function CustomerDetails ({ currentUser }){
                             </div>
                         </div>
 
-                        <div className="w-full lg:w-6/12 px-4">
+                        <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
                             <div className="relative w-full mb-3">
                                 <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Email
@@ -185,7 +181,8 @@ export default function CustomerDetails ({ currentUser }){
                                 />
                             </div>
                         </div>
-                        <div className="w-full lg:w-6/12 px-4">
+
+                        <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
                             <div className="relative w-full mb-3">
                                 <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Phone
@@ -200,63 +197,7 @@ export default function CustomerDetails ({ currentUser }){
                                 />
                             </div>
                         </div>
-                    </div>
-
-                    <div className="w-full lg:w-6/12 px-4">
-                        <div className="relative w-full mb-3">
-                            <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                Role
-                            </label>
-                            <select
-                                name="role"
-                                value={formData.role}
-                                onChange={handleRoleChange} // Use the new handler
-                                className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                                disabled={!editMode}
-                            >
-                                <option value={0}>Admin</option>
-                                <option value={1}>Customer</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="w-full lg:w-6/12 px-4">
-                        <div className="relative w-full mb-3">
-                            <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                User Status
-                            </label>
-                            <select
-                                name="userStatus"
-                                value={formData.userStatus}
-                                onChange={handleUserStatusChange} // Use the new handler
-                                className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                                disabled={!editMode}
-                            >
-                                <option value={0}>Inactive</option>
-                                <option value={1}>Active</option>
-                                <option value={2}>Suspended</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap">
-                        <div className="w-full lg:w-6/12 px-4">
-                            <div className="relative w-full mb-3">
-                                <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                    Gender
-                                </label>
-                                <input
-                                    type="text"
-                                    name="gender"
-                                    value={formData.gender}
-                                    onChange={handleInputChange}
-                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                                    disabled={!editMode}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="w-full lg:w-6/12 px-4">
+                        <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
                             <div className="relative w-full mb-3">
                                 <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
                                     Date of Birth
@@ -271,47 +212,55 @@ export default function CustomerDetails ({ currentUser }){
                                 />
                             </div>
                         </div>
-                    </div>
 
-                    <div className="w-full lg:w-6/12 px-4">
-                        <div className="relative w-full mb-3">
-                            <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                Address
-                            </label>
-                            <input
-                                type="text"
-                                name="address"
-                                value={formData.address}
-                                onChange={handleInputChange}
-                                className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                                disabled={!editMode}
-                            />
+                        <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
+                            <div className="relative w-full mb-3">
+                                <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
+                                    Address
+                                </label>
+                                <input
+                                    type="text"
+                                    name="address"
+                                    value={formData.address}
+                                    onChange={handleInputChange}
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                                    disabled={!editMode}
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="w-full lg:w-6/12 px-4">
-                        <div className="relative w-full mb-3">
+                        <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
                             <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                Date of Creation
+                                User Status
                             </label>
-                            <input
-                                type="text"
-                                name="dateOfCreation"
-                                value={format(new Date(formData.dateOfCreation),  "yyyy-MM-dd")}
-                                onChange={handleInputChange}
+                            <select
+                                name="userStatus"
+                                value={formData.userStatus}
+                                onChange={handleUserStatusChange}
                                 className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
                                 disabled
-                            />
+                            >
+                                <option value={0}>Inactive</option>
+                                <option value={1}>Active</option>
+                                <option value={2}>Suspended</option>
+                            </select>
+                        </div>
+                        <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
+                            <div className="relative w-full mb-3">
+                                <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
+                                    Date of Creation
+                                </label>
+                                <input
+                                    type="text"
+                                    value={format(new Date(formData.dateOfCreation), "MM/dd/yyyy")}
+                                    className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                                    disabled
+                                />
+                            </div>
                         </div>
                     </div>
                 </form>
             </div>
         </div>
-
-            {currentRole === 0 ? (
-                <CustomerOrders user={user} />
-            ) : null}
-
-    </>
     );
 }

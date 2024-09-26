@@ -166,7 +166,8 @@ const OrderDetails = () => {
                                                         </TableRow>
                                                         <TableRow>
                                                             <TableCell className="font-semibold text-gray-600">Customer Notes</TableCell>
-                                                            <TableCell>{order.orderNotes}</TableCell>
+                                                            <TableCell>{order.orderNotes||'No notes'}</TableCell>
+
                                                         </TableRow>
                                                     </TableBody>
                                                 </Table>

@@ -10,7 +10,7 @@ export default function Shop() {
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filters, setFilters] = useState({ categories: [], priceRange: [0, 1000] });
+    const [filters, setFilters] = useState({ categories: [], priceRange: [0, 1000000] });
     const [searchQuery, setSearchQuery] = useState('');
     const [sortOption, setSortOption] = useState('price-asc'); // 'price-asc', 'price-desc', 'popularity'
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import UserService from "../../../_services/UserService";
-import { useParams } from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {
     Card,
     CardContent,
@@ -8,20 +8,29 @@ import {
     Typography,
     CircularProgress,
     Snackbar,
-    Alert, Box, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody
+    Alert, Box, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Pagination
 } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const CustomerOrders = ({user}) => {
-    const { customerId } = useParams();
+   // const { customerId } = useParams();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const navigate = useNavigate();
+    const [currentPage, setCurrentPage] = useState(1);
+    const [ordersPerPage] = useState(5);
 
+    // Pagination logic
+    const indexOfLastOrder = currentPage * ordersPerPage;
+    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+    const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder); // Slice orders for the current page
+    const currenRole=1;
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const response = await UserService.GetOrdersByCustomerIdAsync(customerId);
+                const response = await UserService.GetOrdersByCustomerIdAsync(user.id);
                 setOrders(response);
             } catch (err) {
                 setError(err.message || 'An error occurred while fetching orders.');
@@ -32,7 +41,8 @@ const CustomerOrders = ({user}) => {
         };
 
         fetchOrders();
-    }, [customerId]);
+    }, [user.id]);
+
     const getStatusColor = (status) => {
         switch (status) {
             case 0:
@@ -46,9 +56,12 @@ const CustomerOrders = ({user}) => {
         }
     };
 
-
     const handleSnackbarClose = () => {
         setSnackbarOpen(false);
+    };
+
+    const handlePageChange = (event, newPage) => {
+        setCurrentPage(newPage);
     };
 
     if (loading) {
@@ -60,7 +73,6 @@ const CustomerOrders = ({user}) => {
         );
     }
 
-    // If there's an error, display an alert
     if (error) {
         return (
             <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
@@ -70,6 +82,17 @@ const CustomerOrders = ({user}) => {
             </Snackbar>
         );
     }
+
+    const handleViewDetails = (orderId) => {
+        if(currenRole == 0)
+        {
+            navigate(`/admin/orders/${orderId}`);
+        }else{
+            navigate(`/customerProfile/orders/${orderId}`);
+        }
+
+
+    };
 
     // Calculate statistics directly from orders
     const totalOrders = orders.length;
@@ -142,9 +165,9 @@ const CustomerOrders = ({user}) => {
                     </Card>
                 </Grid>
             </Grid>
-            {/* Orders Summary Section */}
             <Box sx={{margin: "2%", padding: "20px", bgcolor: "#f5f5f5", borderRadius: "8px"}}>
                 <h6 className="text-blueGray-700 text-xl font-bold">Orders for : {user.fullName}</h6>
+                <br/>
                 {/* Order List */}
                 <TableContainer component={Paper} style={{width: '100%'}}>
                     <Table>
@@ -154,16 +177,16 @@ const CustomerOrders = ({user}) => {
                                 <TableCell>Order Date</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell>Total Amount</TableCell>
+                                <TableCell>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {orders.length === 0 ? (
+                            {currentOrders.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center">No orders found for this
-                                        customer.</TableCell>
+                                    <TableCell colSpan={5} className="text-center">No orders found for this customer.</TableCell>
                                 </TableRow>
                             ) : (
-                                orders.map(order => (
+                                currentOrders.map(order => (
                                     <TableRow key={order.orderId} hover>
                                         <TableCell>{order.orderId}</TableCell>
                                         <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
@@ -171,12 +194,29 @@ const CustomerOrders = ({user}) => {
                                             {order.orderStatus === 0 ? 'Pending' : order.orderStatus === 1 ? 'Shipped' : 'Rejected'}
                                         </TableCell>
                                         <TableCell>${order.totlaAmount.toFixed(2)}</TableCell>
+                                        <TableCell>
+                                            <IconButton
+                                                onClick={() => handleViewDetails(order.orderId)}
+                                                className="text-green-500 hover:text-green-700"
+                                                title="View Details"
+                                            >
+                                                <VisibilityIcon />
+                                            </IconButton>
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             )}
                         </TableBody>
                     </Table>
                 </TableContainer>
+                <div className="p-4 flex justify-center items-center">
+                    <Pagination
+                        count={Math.ceil(orders.length / ordersPerPage)}
+                        page={currentPage}
+                        onChange={handlePageChange}
+                        color="primary"
+                    />
+                </div>
             </Box>
         </>
     );

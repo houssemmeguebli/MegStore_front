@@ -160,7 +160,7 @@ export default function OrdersTable() {
                 <table className="items-center w-full bg-transparent border-collapse">
                     <thead>
                     <tr>
-                        {["Order Date", "Shipped Date", "Customer Name", "Total Amount", "Order Status", ""].map(
+                        {["Order ID","Order Date", "Shipped Date", "Customer Name", "Total Amount", "Order Status", ""].map(
                             (heading) => (
                                 <th
                                     key={heading}
@@ -177,6 +177,9 @@ export default function OrdersTable() {
                         const { label, color } = getStatusLabel(order.orderStatus);
                         return (
                             <tr key={order.orderId}>
+                                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 font-bold text-xs whitespace-nowrap p-4">
+                                    {order.orderId}
+                                </td>
                                 <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left font-bold text-blueGray-600">
                                     {new Date(order.orderDate).toLocaleDateString()}
                                 </td>
@@ -192,7 +195,7 @@ export default function OrdersTable() {
                                     ${order.totlaAmount}
                                 </td>
                                 <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                                    <Chip label={label} color={color} />
+                                    <Chip label={label} color={color}/>
                                 </td>
                                 <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 font-bold text-xs whitespace-nowrap p-4 text-right">
                                     <div className="flex justify-end space-x-2">
@@ -201,14 +204,14 @@ export default function OrdersTable() {
                                             className="text-red-500 hover:text-red-700"
                                             title="Delete"
                                         >
-                                            <DeleteIcon />
+                                            <DeleteIcon/>
                                         </IconButton>
                                         <IconButton
                                             onClick={() => handleViewDetails(order.orderId)}
                                             className="text-green-500 hover:text-green-700"
                                             title="View Details"
                                         >
-                                            <VisibilityIcon />
+                                            <VisibilityIcon/>
                                         </IconButton>
                                     </div>
                                 </td>
@@ -219,7 +222,7 @@ export default function OrdersTable() {
                 </table>
             </div>
             <div className="p-4 flex justify-center items-center">
-                <Pagination
+            <Pagination
                     count={Math.ceil(filteredOrders.length / ordersPerPage)}
                     page={currentPage}
                     onChange={handlePageChange}
