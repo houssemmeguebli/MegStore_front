@@ -3,16 +3,16 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 // Components
 import Navbar from "components/Navbars/AuthNavbar.js";
-import FooterSmall from "components/Footers/FooterSmall.js";
 
 // Views
 import Login from "../views/frontOfiice/auth/Login.js";
 import Register from "../views/frontOfiice/auth/Register.js";
+import Footer from "../components/Footers/Footer";
 
 export default function Auth() {
     return (
         <>
-            <Navbar transparent />
+            <Navbar className="bg-blueGray-200" />
             <main>
                 <section className="relative w-full h-full py-40 min-h-screen">
                     <div
@@ -29,9 +29,10 @@ export default function Auth() {
                         {/* Redirect any unmatched routes */}
                         <Route path="*" element={<Navigate to="/auth/login" />} />
                     </Routes>
-                    <FooterSmall absolute />
                 </section>
             </main>
+            <Footer/>
+
         </>
     );
 }

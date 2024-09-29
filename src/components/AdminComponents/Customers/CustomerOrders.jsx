@@ -11,6 +11,7 @@ import {
     Alert, Box, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, IconButton, Pagination
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import AuthService from "../../../_services/AuthService";
 
 const CustomerOrders = ({user}) => {
    // const { customerId } = useParams();
@@ -26,7 +27,8 @@ const CustomerOrders = ({user}) => {
     const indexOfLastOrder = currentPage * ordersPerPage;
     const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
     const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder); // Slice orders for the current page
-    const currenRole=1;
+    const currenRole=AuthService.getCurrentUser().role;
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {
@@ -84,7 +86,7 @@ const CustomerOrders = ({user}) => {
     }
 
     const handleViewDetails = (orderId) => {
-        if(currenRole == 0)
+        if(currenRole === "Admin")
         {
             navigate(`/admin/orders/${orderId}`);
         }else{

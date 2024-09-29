@@ -45,6 +45,8 @@ class AuthService {
                 },
             });
             localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
+
             return response.data;
         } catch (error) {
             console.error('Error logging out:', error.response ? error.response.data : error.message);
@@ -106,22 +108,28 @@ class AuthService {
     }
 
     getCurrentUser() {
-        const token = localStorage.getItem('token');
+        // Retrieve token from either localStorage or sessionStorage
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
         if (token) {
             try {
+                // Decode the token
                 const decodedToken = jwtDecode(token);
+
+                // Return the extracted user details
                 return {
                     id: decodedToken.id,
                     role: decodedToken.role,
                     email: decodedToken.email,
-                    fullName:decodedToken.fullName,
+                    fullName: decodedToken.fullName,
                 };
             } catch (error) {
                 console.error('Error decoding token:', error);
-                return null;
+                return null; // Return null in case of a decoding error
             }
         }
-        return null;
+
+        return null; // Return null if no token is found
     }
 }
 

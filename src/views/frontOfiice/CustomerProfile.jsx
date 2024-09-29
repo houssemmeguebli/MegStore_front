@@ -6,9 +6,10 @@ import CustomerOrders from "../../components/AdminComponents/Customers/CustomerO
 import Navbar from "../../components/Navbars/AuthNavbar";
 import Footer from "../../components/Footers/Footer";
 import CustomerInfo from "../../components/FrontOfficeComponents/Customer/CustomerInfo";
+import AuthService from "../../_services/AuthService";
 
 const CustomerProfile = () => {
-    const customerId = 7; // Static value for now, can use useParams() for dynamic routing later
+    const customerId = AuthService.getCurrentUser().id; // Static value for now, can use useParams() for dynamic routing later
     const [user, setUser] = useState(null);
     const [coupons, setCoupons] = useState([]); // State to hold coupons
     const [loading, setLoading] = useState(true);
@@ -56,27 +57,6 @@ const CustomerProfile = () => {
                                 <CustomerInfo currentUser={user} />
                             ) : (
                                 <Typography variant="body1">Customer details not found.</Typography>
-                            )}
-                        </div>
-
-                        {/* Coupons Section */}
-                        <div className="bg-white p-6 shadow-lg rounded-lg mb-6">
-                            <Typography variant="h5" align="center" className="mb-4">Exclusive Coupons Just for You!</Typography>
-                            <Typography variant="body2" align="center" className="mb-2">
-                                Check out the amazing discounts available on your next purchase.
-                                Use these coupons at checkout to save big!
-                            </Typography>
-                            {coupons.length > 0 ? (
-                                <div className="space-y-2">
-                                    {coupons.map((coupon) => (
-                                        <div key={coupon.id} className="flex justify-between p-4 border rounded-lg shadow-sm hover:bg-gray-100 transition duration-200 ease-in-out">
-                                            <Typography variant="body1" className="font-semibold">{coupon.code}</Typography>
-                                            <Typography variant="body1" className="text-green-600 font-bold">{coupon.discountPercentage}% Off</Typography>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <Typography variant="body1" align="center" className="text-gray-500">No coupons available at the moment. Stay tuned for updates!</Typography>
                             )}
                         </div>
 

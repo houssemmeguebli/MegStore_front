@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import UserService from "../../../_services/UserService";
 import { useParams } from "react-router-dom";
 import Swal from 'sweetalert2';
 import { Box, Button } from "@mui/material";
-import CustomerOrders from "./CustomerOrders";
 import { format } from "date-fns";
-import AuthService from "../../../_services/AuthService";
-import AdminProduct from "../Admin/AdminProducts";
+import AuthService from "../../_services/AuthService";
+import UserService from "../../_services/UserService";
+import AdminProduct from "../../components/AdminComponents/Admin/AdminProducts";
 
-export default function CustomerDetails ({ currentUser }){
-    const currentCustomer= AuthService.getCurrentUser();
-    const currentRole =currentCustomer.role
-    console.log("currentCustomer",currentCustomer)
+export default function AdminProfile ( ){
+    const currentAdmin= AuthService.getCurrentUser();
+    const currentRole =currentAdmin.role
+    console.log("currentAdmin",currentAdmin)
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
-    const { customerId } = useParams();
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -29,14 +27,13 @@ export default function CustomerDetails ({ currentUser }){
     });
 
     useEffect(() => {
-        console.log("currentCustomer",currentCustomer)
+        console.log("currentAdmin",currentAdmin)
 
         const fetchUser = async () => {
             try {
-                const data = await UserService.getUserById(customerId||currentUser.id);
+                const data = await UserService.getUserById(currentAdmin.id);
                 setUser(data);
-                console.log("currentCustomer",currentCustomer)
-
+                console.log("currentAdmin",currentAdmin)
                 setFormData({
                     fullName: data.fullName,
                     email: data.email,
@@ -56,7 +53,7 @@ export default function CustomerDetails ({ currentUser }){
         };
 
         fetchUser();
-    }, [customerId]);
+    }, [currentAdmin.id]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -104,7 +101,7 @@ export default function CustomerDetails ({ currentUser }){
 
     const handleSaveClick = async () => {
         try {
-            await UserService.updateUser(customerId, formData);
+            await UserService.updateUser(currentAdmin.id, formData);
             setUser(formData); // Update user state with form data
             setEditMode(false); // Exit edit mode after saving
             Swal.fire("Success", "User updated successfully", "success");
@@ -125,11 +122,10 @@ export default function CustomerDetails ({ currentUser }){
 
     return (
         <>
-            <div
-                className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
+            <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
                 <div className="rounded-t bg-white mb-0 px-6 py-6">
                     <div className="text-center flex justify-between">
-                        <h6 className="text-blueGray-700 text-xl font-bold">User Details </h6>
+                        <h6 className="text-blueGray-700 text-xl font-bold">My Profile</h6>
                         {!editMode ? (
                             <button
                                 className="bg-blue-500 active:bg-blue-600 font-bold uppercase text-xs px-4 py-2 rounded shadow hover:shadow-md focus:outline-none ease-linear transition-all duration-150"
@@ -143,7 +139,7 @@ export default function CustomerDetails ({ currentUser }){
                                     variant="contained"
                                     color="white"
                                     onClick={handleSaveClick}
-                                    style={{marginRight: 8}}
+                                    style={{ marginRight: 8 }}
                                     disabled={!isFormChanged()}
                                 >
                                     Save
@@ -162,7 +158,7 @@ export default function CustomerDetails ({ currentUser }){
                 <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
                     <form>
                         <h6 className="text-blueGray-400 text-sm mt-3 mb-6 font-bold uppercase">
-                            User Information
+                            My Information
                         </h6>
                         <div className="flex flex-wrap">
                             <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
@@ -294,16 +290,9 @@ export default function CustomerDetails ({ currentUser }){
                     </form>
                 </div>
             </div>
-
-            {currentRole === "Admin" ? (
-                <CustomerOrders user={user}/>
-            ) : null}
-            {currentRole === "SuperAdmin" ? (
-            <div
-                className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
-                <AdminProduct adminId={user}/>
+            <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
+            <AdminProduct adminId={currentAdmin}/>
             </div>
-            ) : null}
         </>
     );
 }

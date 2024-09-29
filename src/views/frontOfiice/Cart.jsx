@@ -6,6 +6,8 @@ import Navbar from "../../components/Navbars/AuthNavbar";
 import Footer from "../../components/Footers/Footer";
 import Swal from 'sweetalert2';
 import CouponService from "../../_services/CouponService";
+import CartService from "../../_services/CartService";
+import AuthService from "../../_services/AuthService";
 
 const Cart = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -15,9 +17,14 @@ const Cart = () => {
     const [discountPercentage, setDiscountPercentage] = useState(0);
     const [UsageNumbers, setUsageNumbers] = useState(0);
     const navigate = useNavigate();
+    const isAuthenticated = localStorage.getItem('token')||sessionStorage.getItem('token'); // Replace with your actual auth check
+    const storedCart = JSON.parse(localStorage.getItem('cart'))
+    const formattedDate  = new Date().toISOString();
 
     useEffect(() => {
+
         const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+
         setCartItems(storedCart.map(item => ({ ...item, quantity: item.quantity || 1 })));
     }, []);
 
@@ -44,9 +51,59 @@ const Cart = () => {
     };
 
     // Checkout logic retrieves finalPrice from local storage
-    const handleCheckout = () => {
-        const finalPrice = localStorage.getItem('finalAmount');
-        navigate('/order', { state: { finalPrice } }); // Pass final price to order
+    const totalAmount = cartItems.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0); // Calculate total amount
+
+    const handleCheckout = async () => {
+        if (!isAuthenticated) {
+            Swal.fire({
+                title: 'Not Authenticated',
+                text: 'Please log in or create an account to proceed.',
+                icon: 'warning',
+                confirmButtonText: 'Go to Login',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    title: 'swal-title',
+                    text: 'swal-text',
+                    confirmButton: 'swal-confirm',
+                    cancelButton: 'swal-cancel',
+                },
+                backdrop: `rgba(0, 0, 0, 0.4)`, // Optional: a stylish backdrop
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    navigate('/auth/login', { state: { fromCart: true } });
+                }
+            });
+        } else {
+            const finalPrice = localStorage.getItem('finalAmount');
+
+            // Create or update cart in the backend
+            try {
+                const cartData = {
+                    CartItems: cartItems.map(item => ({
+                        productId: item.productId,
+                        quantity: item.quantity || 1,
+                        unitPrice: item.productPrice,
+                        TotalPrice:finalPrice,
+                    })),
+                    dateCreated: formattedDate,
+                    totalAmount: finalPrice,
+                    customerId: AuthService.getCurrentUser().id,
+                };
+
+                await CartService.createCart(cartData); // Make sure to implement this method in CartService
+
+                // Navigate to the order page with the final price
+                navigate('/order', { state: { finalPrice } });
+            } catch (error) {
+                console.error("Error updating cart:", error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'There was an issue updating your cart. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                });
+            }
+        }
     };
 
     const handleDiscountCodeChange = (e) => {

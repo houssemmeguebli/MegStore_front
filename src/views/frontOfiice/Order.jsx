@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import OrderService from "../../_services/OrderService";
 import UserService from "../../_services/UserService";
+import AuthService from "../../_services/AuthService";
 
 const Order = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -19,7 +20,7 @@ const Order = () => {
         phone: '',
     });
     const [orderNotes, setOrderNotes] = useState('');
-    const [customerId, setCustomerId] = useState(7); // Default customerId
+    const customerId= AuthService.getCurrentUser().id
     const [orderId, setOrderId] = useState(null);
     const navigate = useNavigate();
 

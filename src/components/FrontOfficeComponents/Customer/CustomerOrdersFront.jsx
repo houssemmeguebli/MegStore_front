@@ -94,7 +94,7 @@ const CustomerOrdersFront = () => {
     return (
         <>
             <Navbar transparent />
-            <Container className="container mx-auto p-6 lg:p-12 bg-gray-50" sx={{ margin: "10%" }}>
+            <Container sx={{ margin: "10%" ,padding:3}} className={"bg-blueGray-200"}>
                 <Card className="overflow-hidden shadow-lg">
                     <CardHeader
                         title="Order Details"

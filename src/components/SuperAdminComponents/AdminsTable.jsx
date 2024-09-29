@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { IconButton, MenuItem, Select, FormControl, InputLabel, Pagination, Chip } from "@mui/material";
+import {IconButton, MenuItem, Select, FormControl, InputLabel, Pagination, Chip, Button} from "@mui/material";
 import Swal from "sweetalert2";
-import UserService from "../../../_services/UserService";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
+import UserService from "../../_services/UserService";
 
-const CustomerTable = ({ color }) => {
+const AdminsTable = ({ color }) => {
     const [customers, setCustomers] = useState([]);
     const [filterStatus, setFilterStatus] = useState("all");
     const [currentPage, setCurrentPage] = useState(1);
@@ -17,7 +17,7 @@ const CustomerTable = ({ color }) => {
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
-                const response = await UserService.GetUsersWithRole(1);
+                const response = await UserService.GetUsersWithRole(0);
                 setCustomers(response);
                 console.log("Fetched customers:", response);
             } catch (error) {
@@ -100,6 +100,16 @@ const CustomerTable = ({ color }) => {
                         <MenuItem value="inactive">Inactive</MenuItem>
                     </Select>
                 </FormControl>
+                <div className="flex-grow text-right">
+                    <Button
+                        variant="contained"
+                        color="white"
+                        onClick={() => navigate('/admin/admins/addAdmin')}
+                        className={`bg-blue-500 px-4 py-2 rounded ${color === "light" ? "hover:bg-blue-600" : "hover:bg-blue-400"}`}
+                    >
+                        Add New Admin
+                    </Button>
+                </div>
             </div>
             <div className="block w-full overflow-x-auto">
                 <table className="items-center w-full bg-transparent border-collapse">
@@ -157,12 +167,12 @@ const CustomerTable = ({ color }) => {
     );
 };
 
-CustomerTable.defaultProps = {
+AdminsTable.defaultProps = {
     color: "light",
 };
 
-CustomerTable.propTypes = {
+AdminsTable.propTypes = {
     color: PropTypes.oneOf(["light", "dark"]),
 };
 
-export default CustomerTable;
+export default AdminsTable;

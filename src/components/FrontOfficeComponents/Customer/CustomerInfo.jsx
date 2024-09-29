@@ -165,7 +165,6 @@ export default function CustomerInfo({ currentUser }) {
                                 />
                             </div>
                         </div>
-
                         <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
                             <div className="relative w-full mb-3">
                                 <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">

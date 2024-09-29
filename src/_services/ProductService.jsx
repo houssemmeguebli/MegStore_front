@@ -104,6 +104,15 @@ class ProductService {
             throw error;
         }
     }
+    async GetProductByAdminId(adminId){
+        try {
+            const response = await axios.get(`${this.baseUrl}/products/${adminId}`);
+            return response.data;
+        } catch (error) {
+            console.error(`Error fetching product with adminId ${adminId}:`, error);
+            throw error;
+        }
+    }
 
 }
 

@@ -154,6 +154,7 @@ const CouponForm = () => {
                                 value={coupon.minimumOrderAmount}
                                 onChange={handleChange}
                                 type="number"
+                                required
                                 variant="outlined"
                                 InputProps={{
                                     sx: { borderRadius: '8px' }
@@ -171,6 +172,7 @@ const CouponForm = () => {
                                 onChange={handleChange}
                                 type="number"
                                 variant="outlined"
+                                required
                                 InputProps={{
                                     sx: { borderRadius: '8px' }
                                 }}
@@ -187,6 +189,7 @@ const CouponForm = () => {
                                 onChange={handleChange}
                                 type="number"
                                 variant="outlined"
+                                required
                                 InputProps={{
                                     sx: { borderRadius: '8px' }
                                 }}

@@ -4,7 +4,8 @@ import {
 } from '@mui/material';
 import ProductService from '../../../_services/ProductService';
 import CategoryService from '../../../_services/CategoryService';
-
+import AuthService from "../../../_services/AuthService";
+const currentAdmin =AuthService.getCurrentUser();
 const ProductForm = () => {
     const [product, setProduct] = useState({
         productName: '',
@@ -13,7 +14,7 @@ const ProductForm = () => {
         stockQuantity: '',
         isAvailable: true,
         categoryId: '',
-        adminId: 2,
+        adminId: currentAdmin.id,
         dateAdded: new Date().toISOString(),
         ItemQuantiy: 0,  // Corrected field name here
     });
@@ -84,7 +85,7 @@ const ProductForm = () => {
                 stockQuantity: '',
                 isAvailable: true,
                 categoryId: '',
-                adminId: 2,
+                adminId: currentAdmin.id,
                 dateAdded: new Date().toISOString(),
                 ItemQuantiy: '',  // Reset this field too
             });
@@ -175,6 +176,7 @@ const ProductForm = () => {
                                 value={product.productDescription}
                                 onChange={handleChange}
                                 multiline
+                                required
                                 rows={3}
                                 variant="outlined"
                             />
@@ -187,6 +189,7 @@ const ProductForm = () => {
                                     type="file"
                                     hidden
                                     onChange={handleFileChange}
+
                                     accept="image/*"
                                     multiple // Allow multiple file selections
                                 />

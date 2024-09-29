@@ -29,7 +29,7 @@ export default function Navbar(props) {
 
   // Function to check if the user is logged in
   const isUserLoggedIn = () => {
-    return !!localStorage.getItem('token'); // Adjust this based on how you store user authentication
+    return (!!localStorage.getItem('token')|| !!sessionStorage.getItem('token')); // Adjust this based on how you store user authentication
   };
 
   // Logout function
@@ -37,7 +37,7 @@ export default function Navbar(props) {
     AuthService.logout(); // Call the logout method from AuthService
     localStorage.removeItem('token'); // Remove the token from local storage
     localStorage.removeItem('cart'); // Optional: Clear cart if needed
-    navigate("/auth/login"); // Redirect to login page after logout
+    navigate("/"); // Redirect to login page after logout
   };
 
   return (
@@ -46,6 +46,7 @@ export default function Navbar(props) {
           <div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
             <div className="w-full relative flex justify-between lg:w-auto lg:static lg:block lg:justify-start">
               <Link
+                  title={"Home Page"}
                   className="text-white text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-nowrap uppercase"
                   to="/"
               >
@@ -69,6 +70,7 @@ export default function Navbar(props) {
               <ul className="flex flex-col lg:flex-row list-none mr-auto">
                 <li className="flex items-center">
                   <Link
+                      title={"Go to Shop "}
                       className="lg:text-white lg:hover:text-gray-300 text-gray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
                       to="/shop"
                   >
@@ -78,6 +80,7 @@ export default function Navbar(props) {
                 </li>
                 <li className="flex items-center relative">
                   <Link
+                      title={"Go to cart"}
                       className="lg:text-white lg:hover:text-gray-300 text-gray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
                       to="/cart"
                   >
@@ -96,6 +99,7 @@ export default function Navbar(props) {
                     <>
                       <li className="flex items-center">
                         <Link
+                            title={"MY Profile"}
                             className="lg:text-white lg:hover:text-gray-300 text-gray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
                             to="/customerProfile"
                         >
@@ -106,6 +110,7 @@ export default function Navbar(props) {
 
                       <li className="flex items-center">
                         <button
+                            title={"Logout"}
                             onClick={handleLogout}
                             className="lg:text-white lg:hover:text-gray-300 text-gray-700 px-3 py-4 lg:py-2 flex items-center text-xs uppercase font-bold"
                         >

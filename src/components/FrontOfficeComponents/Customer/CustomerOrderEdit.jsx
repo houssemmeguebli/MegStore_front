@@ -142,7 +142,7 @@ const CustomerOrderEdit = () => {
             customerEmail: formData.customerEmail || '',
             customerPhone: formData.customerPhone || '',
             orderNotes: formData.orderNotes || '',
-            TotlaAmount: totalAmount, // Corrected typo: totlaAmount -> totalAmount
+            TotlaAmount: totalAmount,
             orderItems: formData.products.map(product => ({
                 orderItemId: product.orderItemId || 0, // Ensure orderItemId is sent, or default to 0 for new items
                 productId: product.productId, // Include productId to fetch product details
@@ -240,7 +240,7 @@ const CustomerOrderEdit = () => {
     return (
         <>
             <Navbar transparent />
-        <Box sx={{ m: 8, mx: 'auto', maxWidth: '1200px', padding: 3 ,margin:"10%" }}>
+        <Box  sx={{ m: 8, mx: 'auto', maxWidth: '1200px', padding: 3 ,margin:"10%"  }}>
             <Paper elevation={6} sx={{ p: 4, borderRadius: 2 }}>
                 <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
                     Edit Order

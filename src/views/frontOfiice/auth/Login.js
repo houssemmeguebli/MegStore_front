@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, {useRef, useState} from "react";
+import {Link, useLocation, useNavigate} from "react-router-dom";
 import SweetAlert from "sweetalert2";
 import AuthService from "../../../_services/AuthService";
 import {Visibility, VisibilityOff} from "@mui/icons-material";
@@ -11,23 +11,34 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const rememberMeRef = useRef();
+  const location = useLocation();
+  const fromCart = location.state?.fromCart || false; // Check if redirected from cart
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible((prevState) => !prevState);
   };
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent default form submission
-    setLoading(true); // Start loading
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const data = await AuthService.login(email, password);
-     localStorage.setItem('token', data.token);
+      const data = await AuthService.login(email, password); // Login request
+
+      // Check the value of the "Remember Me" checkbox using useRef
+      if (rememberMeRef.current.checked) {
+        localStorage.setItem('token', data.token);  // Store in localStorage if "Remember Me" is checked
+      } else {
+        sessionStorage.setItem('token', data.token); // Store in sessionStorage if "Remember Me" is not checked
+      }
       SweetAlert.fire({
         icon: 'success',
         title: 'Login Successful!',
         text: 'You have successfully logged in.',
       });
-      navigate('/shop'); // Redirect to the dashboard or another route after successful login
+
+      navigate(fromCart ? '/cart' : '/shop');
+
     } catch (error) {
       SweetAlert.fire({
         icon: 'error',
@@ -35,7 +46,7 @@ export default function Login() {
         text: 'Invalid email or password. Please try again.',
       });
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -45,7 +56,8 @@ export default function Login() {
           <div className="w-full lg:w-4/12 px-4">
             <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-200 border-0">
               <div className="rounded-t mb-0 px-6 py-6">
-                <hr className="mt-6 border-b-1 border-blueGray-300" />
+                <h2 className="text-center text-2xl font-bold text-blueGray-700">Welcome Back</h2>
+                <hr className="mt-6 border-b-1 border-blueGray-300"/>
               </div>
               <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
                 <form onSubmit={handleLogin}>
@@ -98,6 +110,7 @@ export default function Login() {
                   <div>
                     <label className="inline-flex items-center cursor-pointer">
                       <input
+                          ref={rememberMeRef}
                           id="customCheckLogin"
                           type="checkbox"
                           className="form-checkbox border-0 rounded text-blueGray-700 ml-1 w-5 h-5 ease-linear transition-all duration-150"

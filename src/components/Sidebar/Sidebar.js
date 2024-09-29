@@ -90,8 +90,8 @@ export default function Sidebar() {
                 { path: "/admin/orders", label: "Orders", icon: "fas fa-shopping-cart" },
                 { path: "/admin/coupons", label: "Coupons", icon: "fas fa-tags" },
                 { path: "/admin/customers", label: "Customers", icon: "fas fa-users" },
-                { path: "/admin/settings", label: "Settings", icon: "fas fa-tools" },
-                { path: "/profile", label: "Profile Page", icon: "fas fa-user-circle" },
+                { path: "/admin/admins", label: "Admins", icon: "fas fa-users" },
+                { path: "/admin/adminProfile", label: "My Profile", icon: "fas fa-user" },
               ].map(({ path, label, icon }) => (
                   <li className="items-center" key={path}>
                     <Link

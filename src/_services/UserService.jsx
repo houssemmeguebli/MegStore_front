@@ -17,6 +17,15 @@ class UserService {
             throw error;
         }
     }
+    async GetUsersWithRole(role) {
+        try {
+            const response = await axios.get(`${this.baseUrl}/users/${role}`);
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching users:", error);
+            throw error;
+        }
+    }
 
     // Fetch a single user by ID
     async getUserById(userId) {
