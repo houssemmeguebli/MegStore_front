@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { TextField, Button, Container, Typography, CircularProgress, Grid, Box, Paper } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { TextField, Button, Typography, CircularProgress, Grid, Box } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CategoryService from "../../../_services/CategoryService";
 
@@ -12,14 +12,64 @@ const CategoryForm = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [touched, setTouched] = useState({});
+    const [isFormValid, setIsFormValid] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const navigate = useNavigate();
 
+    const validateField = (name, value) => {
+        let fieldErrors = { ...errors };
+
+        switch (name) {
+            case 'categorydName':
+                if (!value.trim()) {
+                    fieldErrors.categorydName = "Category Name is required.";
+                } else {
+                    delete fieldErrors.categorydName;
+                }
+                break;
+
+            case 'categoryDescription':
+                if (!value.trim()) {
+                    fieldErrors.categoryDescription = "Category Description is required.";
+                } else if (value.length < 10) {
+                    fieldErrors.categoryDescription = "Category Description must be at least 10 characters long.";
+                } else {
+                    delete fieldErrors.categoryDescription;
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        setErrors(fieldErrors);
+    };
+
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+        validateField(name, category[name]);
+    };
+
+    const validateForm = () => {
+        const hasErrors = Object.values(errors).some((error) => error);
+        const hasEmptyFields = Object.values(category).some((value) => value === '' || value === null);
+        setIsFormValid(!hasErrors && !hasEmptyFields);
+    };
+
+    useEffect(() => {
+        validateForm();
+    }, [category, errors]);
+
     const handleChange = (e) => {
-        setCategory({
-            ...category,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        setCategory((prevCategory) => ({
+            ...prevCategory,
+            [name]: value
+        }));
+        validateField(name, value);
     };
 
     const handleSubmit = async (e) => {
@@ -35,10 +85,11 @@ const CategoryForm = () => {
 
             // Reset the form after successful submission
             setCategory({
-                categorydName: '', // Reset form using categorydName
+                categorydName: '',
                 categoryDescription: ''
             });
-
+            setTouched({});
+            setErrors({});
         } catch (error) {
             console.error('Error adding category:', error);
             setError('Failed to add category. Please try again.');
@@ -65,11 +116,14 @@ const CategoryForm = () => {
                         {/* Category Name */}
                         <Grid item xs={12}>
                             <TextField
-                                name="categorydName" // Use categorydName for consistency with backend
+                                name="categorydName"
                                 label="Category Name"
                                 fullWidth
-                                value={category.categorydName} // Bind to categorydName
+                                value={category.categorydName}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={!!errors.categorydName}
+                                helperText={touched.categorydName && errors.categorydName}
                                 required
                                 variant="outlined"
                             />
@@ -83,6 +137,9 @@ const CategoryForm = () => {
                                 fullWidth
                                 value={category.categoryDescription}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={!!errors.categoryDescription}
+                                helperText={touched.categoryDescription && errors.categoryDescription}
                                 multiline
                                 rows={3}
                                 variant="outlined"
@@ -96,10 +153,10 @@ const CategoryForm = () => {
                                 color="primary"
                                 type="submit"
                                 fullWidth
-                                disabled={loading}
+                                disabled={loading || !isFormValid}
                                 size="large"
                             >
-                                {loading ? <CircularProgress size={24}/> : 'Add Category'}
+                                {loading ? <CircularProgress size={24} /> : 'Add Category'}
                             </Button>
                         </Grid>
                     </Grid>

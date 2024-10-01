@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import { TextField, Button, Grid, Box, Typography, Paper, Card, CardContent, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import OrderService from "../../../_services/OrderService";
 import { useNavigate, useParams } from "react-router-dom";
@@ -25,8 +25,12 @@ const OrderEdit = () => {
 
     });
     const [error, setError] = useState('');
+    const [touched, setTouched] = useState({});
+    const [isFormValid, setIsFormValid] = useState(false);
+    const [errors, setErrors] = useState({});
     const [isProductEditEnabled, setIsProductEditEnabled] = useState(false);
     const navigate = useNavigate();
+
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -72,12 +76,18 @@ const OrderEdit = () => {
         fetchOrder();
     }, [orderId]);
 
+    useEffect(() => {
+        validateForm();
+    }, [formData]);
+
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
             [name]: value,
         });
+        validateField(name, value);
     };
 
     const handleProductChange = (index, e) => {
@@ -90,6 +100,7 @@ const OrderEdit = () => {
             ...formData,
             products: newProducts,
         });
+        validateField(name, value);
     };
 
     const handleProductRemove = async (index) => {
@@ -129,6 +140,82 @@ const OrderEdit = () => {
                 });
             }
         }
+
+    };
+    const validateField = (name, value) => {
+        let fieldErrors = { ...errors };
+
+        switch (name) {
+            case 'customerName':
+                if (!value.trim()) {
+                    fieldErrors.customerName = "Customer Name is required.";
+                } else if (value.length < 2) {
+                    fieldErrors.customerName = "Customer Name must be at least 2 characters long.";
+                } else {
+                    delete fieldErrors.customerName;
+                }
+                break;
+            case 'orderNotes':
+                if (value.length < 10) {
+                    fieldErrors.orderNotes = "order Notes  must be at least 10 characters long.";
+                }
+                else {
+                    delete fieldErrors.orderNotes;
+                }
+                break;
+            case 'customerAddress':
+                if (!value.trim()) {
+                    fieldErrors.customerAddress = "Customer Address  is required.";
+                } else if (value.length < 10) {
+                    fieldErrors.customerAddress = "Customer Address  must be at least 10 characters long.";
+                } else {
+                    delete fieldErrors.customerAddress;
+                }
+                break;
+            case 'customerEmail':
+                if (!value) {
+                    fieldErrors.customerEmail = "Customer Email is required.";
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fieldErrors.customerEmail)) {
+                    fieldErrors.customerEmail = "Invalid email format."
+                } else {
+                    delete fieldErrors.customerEmail;
+                }
+                break;
+            case 'customerPhone':
+                if (!value) {
+                    fieldErrors.customerPhone = "Phone Number is required.";
+                } else if (!/^\d{10,15}$/.test(fieldErrors.customerPhone)) {
+                    fieldErrors.customerPhone = "Phone Number must be between 10 to 15 digits.";
+                }
+                break;
+
+            case 'orderStatus':
+                if (!value) {
+                    fieldErrors.orderStatus = "Order Status is required.";
+                } else {
+                    delete fieldErrors.orderStatus;
+                }
+                break;
+
+
+            default:
+                break;
+        }
+
+        setErrors(fieldErrors);
+        return Object.keys(fieldErrors).length === 0;
+    };
+
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+        validateField(name, formData[name]);
+    };
+
+    const validateForm = () => {
+        const hasErrors = Object.values(errors).some((error) => error);
+        const hasEmptyFields = Object.values(formData).some((value) => value === '' || value === null);
+        setIsFormValid(!hasErrors && !hasEmptyFields);
     };
 
     const handleSave = async () => {
@@ -232,13 +319,13 @@ const OrderEdit = () => {
             return total + (product.itemQuantity * product.productPrice);
         }, 0).toFixed(2);
     };
-    const totalAmount = calculateTotalPrice();
+    const totalAmount = useMemo(() => calculateTotalPrice(), [formData.products]);
 
     if (isLoading) return <Typography variant="h6">Loading...</Typography>;
     if (error) return <Typography variant="h6" color="error">{error}</Typography>;
 
     return (
-        <Box sx={{ m: 8, mx: 'auto', maxWidth: '1200px', padding: 3 }}>
+        <Box sx={{ margin:"10%", mx: 'auto', maxWidth: '1200px', padding: 3 }}>
             <Paper elevation={6} sx={{ p: 4, borderRadius: 2 }}>
                 <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
                     Edit Order
@@ -253,6 +340,7 @@ const OrderEdit = () => {
                                 value={formData.orderDate}
                                 onChange={handleChange}
                                 fullWidth
+                                disabled
                                 InputLabelProps={{ shrink: true }}
                                 sx={{ mb: 2 }}
                             />
@@ -264,16 +352,38 @@ const OrderEdit = () => {
                                 name="customerName"
                                 value={formData.customerName}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={!!errors.customerName}
+                                helperText={errors.customerName}
                                 fullWidth
                                 sx={{ mb: 2 }}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} md={6}>
                             <TextField
                                 label="Customer Address"
                                 type="text"
                                 name="customerAddress"
                                 value={formData.customerAddress}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={!!errors.customerAddress}
+                                helperText={errors.customerAddress}
+                                fullWidth
+                                multiline
+                                rows={3}
+                                sx={{ mb: 2 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Order Notes"
+                                type="text"
+                                name="orderNotes"
+                                value={formData.orderNotes}
+                                onBlur={handleBlur}
+                                error={!!errors.orderNotes}
+                                helperText={errors.orderNotes}
                                 onChange={handleChange}
                                 fullWidth
                                 multiline
@@ -287,6 +397,9 @@ const OrderEdit = () => {
                                 type="email"
                                 name="customerEmail"
                                 value={formData.customerEmail}
+                                onBlur={handleBlur}
+                                error={!!errors.customerEmail}
+                                helperText={errors.customerEmail}
                                 onChange={handleChange}
                                 fullWidth
                                 sx={{ mb: 2 }}
@@ -298,6 +411,9 @@ const OrderEdit = () => {
                                 type="text"
                                 name="customerPhone"
                                 value={formData.customerPhone}
+                                onBlur={handleBlur}
+                                error={!!errors.customerPhone}
+                                helperText={errors.customerPhone}
                                 onChange={handleChange}
                                 fullWidth
                                 sx={{ mb: 2 }}
@@ -311,6 +427,7 @@ const OrderEdit = () => {
                                     name="orderStatus"
                                     value={formData.orderStatus}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
                                     fullWidth
                                 >
                                     <MenuItem value={0}>Pending</MenuItem>
@@ -319,19 +436,7 @@ const OrderEdit = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                label="Order Notes"
-                                type="text"
-                                name="orderNotes"
-                                value={formData.orderNotes}
-                                onChange={handleChange}
-                                fullWidth
-                                multiline
-                                rows={2}
-                                sx={{ mb: 2 }}
-                            />
-                        </Grid>
+
                         <Grid item xs={12}>
                             <Button
                                 variant="contained"
@@ -389,6 +494,7 @@ const OrderEdit = () => {
                                 variant="contained"
                                 color="primary"
                                 type="submit"
+                                disabled={!isFormValid}
                                 startIcon={<SaveIcon />}
                             >
                                 Save Changes

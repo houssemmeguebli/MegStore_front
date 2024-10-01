@@ -5,10 +5,8 @@ import Swal from "sweetalert2";
 import ProductService from "../../../_services/ProductService";
 import { useNavigate } from "react-router-dom";
 import ProductStatistics from "./ProductStatistics";
-
-// Emoji for actions
-const viewIcon = "👁️";
-const deleteIcon = "🗑️";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function ProductTable({ color }) {
   const [products, setProducts] = useState([]);
@@ -180,14 +178,14 @@ export default function ProductTable({ color }) {
                           className="text-red-500 hover:text-red-700"
                           title="Delete"
                       >
-                        <span className="text-xl">{deleteIcon}</span>
+                        <DeleteIcon />
                       </IconButton>
                       <IconButton
                           onClick={() => handleViewDetails(product.productId)}
                           className="text-green-500 hover:text-green-700"
                           title="View Details"
                       >
-                        <span className="text-xl">{viewIcon}</span>
+                        <VisibilityIcon />
                       </IconButton>
                     </div>
                   </td>

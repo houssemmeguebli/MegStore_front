@@ -5,7 +5,9 @@ import {
 import ProductService from '../../../_services/ProductService';
 import CategoryService from '../../../_services/CategoryService';
 import AuthService from "../../../_services/AuthService";
-const currentAdmin =AuthService.getCurrentUser();
+
+const currentAdmin = AuthService.getCurrentUser();
+
 const ProductForm = () => {
     const [product, setProduct] = useState({
         productName: '',
@@ -16,20 +18,21 @@ const ProductForm = () => {
         categoryId: '',
         adminId: currentAdmin.id,
         dateAdded: new Date().toISOString(),
-        ItemQuantiy: 0,  // Corrected field name here
+        itemQuantity: 0,
     });
 
     const [categories, setCategories] = useState([]);
-    const [imageFiles, setImageFiles] = useState([]); // Changed to handle multiple files
+    const [imageFiles, setImageFiles] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState({});
     const [success, setSuccess] = useState(false);
+    const [touched, setTouched] = useState({});
+    const [isFormValid, setIsFormValid] = useState(false);
 
     useEffect(() => {
         async function fetchCategories() {
             try {
                 const categoryData = await CategoryService.getAllCategories();
-                console.log('Fetched categories:', categoryData);
                 if (Array.isArray(categoryData)) {
                     setCategories(categoryData);
                 } else {
@@ -42,42 +45,121 @@ const ProductForm = () => {
         fetchCategories();
     }, []);
 
+    useEffect(() => {
+        validateForm();
+    }, [product]);
+
     const handleChange = (e) => {
-        console.log(`Field ${e.target.name} changed to: ${e.target.value}`);
+        const { name, value } = e.target;
         setProduct({
             ...product,
-            [e.target.name]: e.target.value,
+            [name]: value,
         });
+
+        validateField(name, value);
     };
 
     const handleFileChange = (e) => {
-        console.log('Selected files:', e.target.files);
-        // Convert FileList to Array and update state
         setImageFiles(Array.from(e.target.files));
     };
 
     const handleCategoryChange = (e) => {
-        console.log('Category changed to:', e.target.value);
+        const { value } = e.target;
         setProduct({
             ...product,
-            categoryId: e.target.value,
+            categoryId: value,
         });
+
+        validateField('categoryId', value);
+    };
+
+    const validateField = (name, value) => {
+        let fieldErrors = { ...errors };
+
+        switch (name) {
+            case 'productName':
+                if (!value.trim()) {
+                    fieldErrors.productName = "Product Name is required.";
+                } else if (value.length < 3) {
+                    fieldErrors.productName = "Product Name must be at least 3 characters long.";
+                } else {
+                    delete fieldErrors.productName;
+                }
+                break;
+
+            case 'productDescription':
+                if (!value.trim()) {
+                    fieldErrors.productDescription = "Product Description is required.";
+                } else if (value.length < 10) {
+                    fieldErrors.productDescription = "Product Description must be at least 10 characters long.";
+                } else {
+                    delete fieldErrors.productDescription;
+                }
+                break;
+
+            case 'productPrice':
+                if (!value) {
+                    fieldErrors.productPrice = "Product Price is required.";
+                } else if (isNaN(value) || value <= 0) {
+                    fieldErrors.productPrice = "Product Price must be a positive number.";
+                } else {
+                    delete fieldErrors.productPrice;
+                }
+                break;
+
+            case 'stockQuantity':
+                if (!value) {
+                    fieldErrors.stockQuantity = "Stock Quantity is required.";
+                } else if (isNaN(value) || value < 0) {
+                    fieldErrors.stockQuantity = "Stock Quantity must be a positive number.";
+                } else {
+                    delete fieldErrors.stockQuantity;
+                }
+                break;
+            case 'discountPercentage':
+                if (!value) {
+                    fieldErrors.discountPercentage = "Discount Percentage must be a positive number.";
+                } else {
+                    delete fieldErrors.discountPercentage;
+                }
+                break;
+
+            case 'categoryId':
+                if (!value) {
+                    fieldErrors.categoryId = "Category is required.";
+                } else {
+                    delete fieldErrors.categoryId;
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        setErrors(fieldErrors);
+    };
+
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+        validateField(name, product[name]);
+    };
+
+    const validateForm = () => {
+        const hasErrors = Object.values(errors).some((error) => error);
+        const hasEmptyFields = Object.values(product).some((value) => value === '' || value === null);
+        setIsFormValid(!hasErrors && !hasEmptyFields);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
+        setErrors({});
         setSuccess(false);
-        console.log('Submitting product:', product);
 
         try {
-            console.log("product:",product);
-            console.log("imageFiles:",imageFiles);
-            const response = await ProductService.createProduct(product, imageFiles);
-            console.log('Product added:', response);
+            await ProductService.createProduct(product, imageFiles);
             setSuccess(true);
-
             setProduct({
                 productName: '',
                 productDescription: '',
@@ -87,13 +169,11 @@ const ProductForm = () => {
                 categoryId: '',
                 adminId: currentAdmin.id,
                 dateAdded: new Date().toISOString(),
-                ItemQuantiy: '',  // Reset this field too
+                itemQuantity: 0,
             });
-            setImageFiles([]); // Clear selected files
-          //  window.location.reload();
+            setImageFiles([]);
         } catch (error) {
-            console.error('Error adding product:', error);
-            setError('Failed to add product. Please try again.');
+            setErrors({ submit: 'Failed to add product. Please try again.' });
         } finally {
             setLoading(false);
         }
@@ -103,11 +183,10 @@ const ProductForm = () => {
         <Container sx={{ marginTop: '10%' }}>
             <Paper elevation={3} sx={{ padding: '24px' }}>
                 <Typography variant="h4" gutterBottom>Add Product</Typography>
-                {error && <Typography color="error">{error}</Typography>}
+                {errors.submit && <Typography color="error">{errors.submit}</Typography>}
                 {success && <Typography color="primary">Product added successfully!</Typography>}
                 <Box component="form" sx={{ mt: 2 }} onSubmit={handleSubmit} noValidate autoComplete="off">
                     <Grid container spacing={2} alignItems="center">
-                        {/* Row 1: Product Name and Product Price */}
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 name="productName"
@@ -115,8 +194,11 @@ const ProductForm = () => {
                                 fullWidth
                                 value={product.productName}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 required
                                 variant="outlined"
+                                error={!!errors.productName}
+                                helperText={errors.productName}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -127,12 +209,28 @@ const ProductForm = () => {
                                 fullWidth
                                 value={product.productPrice}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 required
                                 variant="outlined"
+                                error={!!errors.productPrice}
+                                helperText={errors.productPrice}
                             />
                         </Grid>
-
-                        {/* Row 2: Stock Quantity */}
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                name="discountPercentage"
+                                label="Discount %"
+                                fullWidth
+                                value={product.discountPercentage}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={!!errors.discountPercentage}
+                                helperText={errors.discountPercentage}
+                                variant="outlined"
+                                className="mb-4"
+                                sx={{ '& .MuiInputBase-input': { color: 'black' } }}
+                            />
+                        </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 name="stockQuantity"
@@ -141,14 +239,15 @@ const ProductForm = () => {
                                 fullWidth
                                 value={product.stockQuantity}
                                 onChange={handleChange}
+                                onBlur={handleBlur}
                                 required
                                 variant="outlined"
+                                error={!!errors.stockQuantity}
+                                helperText={errors.stockQuantity}
                             />
                         </Grid>
-
-                        {/* Row 3: Category Dropdown */}
                         <Grid item xs={12} sm={6}>
-                            <FormControl fullWidth variant="outlined">
+                            <FormControl fullWidth variant="outlined" error={!!errors.categoryId}>
                                 <InputLabel id="category-select-label">Category</InputLabel>
                                 <Select
                                     labelId="category-select-label"
@@ -160,15 +259,14 @@ const ProductForm = () => {
                                 >
                                     {categories.map((category) => (
                                         <MenuItem key={category.categoryId} value={category.categoryId}>
-                                            {category.categorydName} {/* Corrected typo */}
+                                            {category.categorydName}
                                         </MenuItem>
                                     ))}
                                 </Select>
+                                {errors.categoryId && <Typography color="error">{errors.categoryId}</Typography>}
                             </FormControl>
                         </Grid>
-
-                        {/* Row 4: Product Description */}
-                        <Grid item xs={12} sm={8}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 name="productDescription"
                                 label="Product Description"
@@ -177,21 +275,22 @@ const ProductForm = () => {
                                 onChange={handleChange}
                                 multiline
                                 required
+                                onBlur={handleBlur}
                                 rows={3}
                                 variant="outlined"
+                                error={!!errors.productDescription}
+                                helperText={errors.productDescription}
                             />
                         </Grid>
-                        {/* Row 5: Image Upload */}
-                        <Grid item xs={12} sm={4}>
+                        <Grid item xs={12} sm={6}>
                             <Button variant="contained" component="label" fullWidth>
                                 Upload Product Images
                                 <input
                                     type="file"
                                     hidden
                                     onChange={handleFileChange}
-
                                     accept="image/*"
-                                    multiple // Allow multiple file selections
+                                    multiple
                                 />
                             </Button>
                             {imageFiles.length > 0 && (
@@ -200,17 +299,16 @@ const ProductForm = () => {
                                 </Typography>
                             )}
                         </Grid>
-
-                        {/* Submit Button */}
-                        <Grid item xs={12} >
+                        <Grid item xs={12} sm={6}>
                             <Button
                                 variant="contained"
                                 color="primary"
                                 type="submit"
                                 fullWidth
-                                disabled={loading}
+                                disabled={loading || !isFormValid}
+                                startIcon={loading && <CircularProgress size={20} />}
                             >
-                                {loading ? <CircularProgress size={18} /> : 'Add Product'}
+                                Add Product
                             </Button>
                         </Grid>
                     </Grid>

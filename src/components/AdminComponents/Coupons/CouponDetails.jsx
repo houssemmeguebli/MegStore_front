@@ -7,13 +7,6 @@ import {
     Button,
     CircularProgress,
     Grid,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
     TextField,
     FormControlLabel,
     Checkbox,
@@ -25,30 +18,87 @@ import Swal from "sweetalert2";
 export default function CouponDetails() {
     const { couponId } = useParams();
     const navigate = useNavigate();
-    const [coupon, setCoupon] = useState();
+    const [coupon, setCoupon] = useState({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [isFormValid, setIsFormValid] = useState(false);
 
     useEffect(() => {
-        async function fetchCoupon() {
+        const fetchCoupon = async () => {
             try {
                 const data = await CouponService.getCouponById(couponId);
                 setCoupon(data);
-
             } catch (error) {
                 console.error("Error fetching coupon:", error);
                 setError("Failed to fetch coupon details.");
             }
-        }
+        };
         fetchCoupon();
     }, [couponId]);
 
+    useEffect(() => {
+        validateForm();
+    }, [coupon, errors]);
+
     const handleChange = (e) => {
-        setCoupon({
-            ...coupon,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+
+        // Update the coupon state
+        setCoupon((prevCoupon) => ({
+            ...prevCoupon,
+            [name]: value,
+        }));
+
+        // Call validation on the field being updated
+        validateField(name, value);
+    };
+
+    const validateField = (name, value) => {
+        let fieldErrors = { ...errors };
+
+        switch (name) {
+            case 'code':
+                fieldErrors.code = value.trim() ? undefined : "Code is required.";
+                break;
+            case 'startDate':
+                fieldErrors.startDate = value.trim() ? undefined : "Start date is required.";
+                break;
+            case 'expiryDate':
+                if (!value.trim()) {
+                    fieldErrors.expiryDate = "Expiry date is required.";
+                } else if (new Date(coupon.startDate) > new Date(value)) {
+                    fieldErrors.expiryDate = "Start date cannot be after expiry date.";
+                } else {
+                    fieldErrors.expiryDate = undefined;
+                }
+                break;
+            case 'discountPercentage':
+            case 'minimumOrderAmount':
+            case 'usageLimit':
+                fieldErrors[name] = value
+                    ? (isNaN(value) || value < 0)
+                        ? `${name.replace(/([A-Z])/g, ' $1')} must be a positive number.`
+                        : undefined
+                    : `${name.replace(/([A-Z])/g, ' $1')} is required.`;
+                break;
+            default:
+                break;
+        }
+
+        setErrors(fieldErrors);
+    };
+
+    const handleBlur = (e) => {
+        const { name, value } = e.target;
+        validateField(name, value);
+    };
+
+    const validateForm = () => {
+        const hasErrors = Object.values(errors).some((error) => error);
+        const hasEmptyFields = Object.values(coupon).some((value) => !value);
+        setIsFormValid(!hasErrors && !hasEmptyFields);
     };
 
     const handleSubmit = async (e) => {
@@ -151,8 +201,11 @@ export default function CouponDetails() {
                                     name="code"
                                     label="Coupon Code"
                                     fullWidth
-                                    value={coupon.code}
+                                    value={coupon.code || ''}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    error={!!errors.code}
+                                    helperText={errors.code}
                                     required
                                     variant="outlined"
                                 />
@@ -165,27 +218,31 @@ export default function CouponDetails() {
                                     label="Discount Percentage"
                                     fullWidth
                                     type="number"
-                                    value={coupon.discountPercentage}
+                                    value={coupon.discountPercentage || ''}
+                                    onBlur={handleBlur}
+                                    error={!!errors.discountPercentage}
+                                    helperText={errors.discountPercentage}
                                     onChange={handleChange}
                                     required
                                     variant="outlined"
                                 />
                             </Grid>
-                            {/* Start Date */}
                             <Grid item xs={12} sm={4}>
                                 <TextField
                                     name="startDate"
                                     label="Start Date"
                                     fullWidth
                                     type="date"
-                                    value={new Date(coupon.startDate).toISOString().split('T')[0]}
+                                    value={coupon.startDate ? new Date(coupon.startDate).toISOString().split('T')[0] : ''}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    error={!!errors.startDate}
+                                    helperText={errors.startDate}
                                     required
                                     variant="outlined"
                                 />
                             </Grid>
 
-                            {/* Expiry Date */}
                             <Grid item xs={12} sm={4}>
                                 <TextField
                                     name="expiryDate"
@@ -194,6 +251,9 @@ export default function CouponDetails() {
                                     type="date"
                                     value={coupon.expiryDate ? new Date(coupon.expiryDate).toISOString().split('T')[0] : ''}
                                     onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    error={!!errors.expiryDate}
+                                    helperText={errors.expiryDate}
                                     variant="outlined"
                                 />
                             </Grid>
@@ -206,6 +266,9 @@ export default function CouponDetails() {
                                     fullWidth
                                     type="number"
                                     value={coupon.minimumOrderAmount || ''}
+                                    onBlur={handleBlur}
+                                    error={!!errors.minimumOrderAmount}
+                                    helperText={errors.minimumOrderAmount}
                                     onChange={handleChange}
                                     variant="outlined"
                                 />
@@ -219,6 +282,9 @@ export default function CouponDetails() {
                                     fullWidth
                                     type="number"
                                     value={coupon.usageLimit || ''}
+                                    onBlur={handleBlur}
+                                    error={!!errors.usageLimit}
+                                    helperText={errors.usageLimit}
                                     onChange={handleChange}
                                     variant="outlined"
                                 />
@@ -230,32 +296,28 @@ export default function CouponDetails() {
                                     control={
                                         <Checkbox
                                             name="isActive"
-                                            checked={coupon.isActive}
-                                            onChange={(e) => setCoupon({ ...coupon, isActive: e.target.checked })}
+                                            checked={coupon.isActive || false}
+                                            onChange={(e) => handleChange({ target: { name: 'isActive', value: e.target.checked } })}
                                         />
                                     }
-                                    label="Is Active"
+                                    label="Active"
                                 />
                             </Grid>
-
-                            {/* Submit Button */}
-                            <Grid item xs={12}>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    type="submit"
-                                    fullWidth
-                                    disabled={loading}
-                                    size="large"
-                                >
-                                    {loading ? <CircularProgress size={24} /> : 'Save Changes'}
-                                </Button>
-                            </Grid>
                         </Grid>
+
+                        <Box mt={2}>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="primary"
+                                disabled={!isFormValid || loading}
+                            >
+                                {loading ? <CircularProgress size={24} /> : "Update Coupon"}
+                            </Button>
+                        </Box>
                     </Box>
                 </CardContent>
             </Card>
-
         </Box>
     );
 }

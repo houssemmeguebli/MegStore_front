@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
     TextField, Button, Typography, CircularProgress, Grid,
-    FormControlLabel, Switch, Box, Paper, IconButton, Snackbar
+    FormControlLabel, Switch, Box, Paper, IconButton, Snackbar, FormControl, InputLabel, Select, MenuItem
 } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import ProductService from "../../../_services/ProductService";
@@ -9,6 +9,7 @@ import UploadIcon from '@mui/icons-material/Upload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Swal from 'sweetalert2';
 import MuiAlert from '@mui/material/Alert';
+import CategoryService from "../../../_services/CategoryService";
 
 const Alert = (props) => <MuiAlert elevation={6} variant="filled" {...props} />;
 
@@ -22,11 +23,17 @@ export default function ProductDetail() {
     const [imagePreviews, setImagePreviews] = useState([]);
     const [deletedImages, setDeletedImages] = useState([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [categories, setCategories] = useState([]);
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
+    const [isFormValid, setIsFormValid] = useState(false);
+
     const [product, setProduct] = useState({
         productName: '',
         productPrice: '',
         stockQuantity: '',
         productDescription: '',
+        categoryId: '',
         isAvailable: false,
         imageUrls: [],
         dateAdded: '',
@@ -52,6 +59,11 @@ export default function ProductDetail() {
 
         fetchProduct();
     }, [productId]);
+    useEffect(() => {
+        validateForm();
+    }, [product]);
+
+
 
     const handleFileChange = (e) => {
         const newFiles = Array.from(e.target.files);
@@ -67,6 +79,8 @@ export default function ProductDetail() {
             ...prevProduct,
             [name]: type === 'checkbox' ? checked : value,
         }));
+        validateField(name, value);
+
     };
 
     const handleImageDelete = async (index) => {
@@ -100,6 +114,31 @@ export default function ProductDetail() {
             console.error("Error deleting image:", error);
             Swal.fire('Error!', 'Failed to delete the image. Please try again.', 'error');
         }
+    };
+    useEffect(() => {
+        async function fetchCategories() {
+            try {
+                const categoryData = await CategoryService.getAllCategories();
+                if (Array.isArray(categoryData)) {
+                    setCategories(categoryData);
+                } else {
+                    console.error('Unexpected category data structure:', categoryData);
+                }
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+            }
+        }
+        fetchCategories();
+    }, []);
+
+    const handleCategoryChange = (e) => {
+        const { value } = e.target;
+        setProduct({
+            ...product,
+            categoryId: value,
+        });
+
+        validateField('categoryId', value);
     };
 
     const handleThumbnailClick = (index) => {
@@ -164,6 +203,86 @@ export default function ProductDetail() {
             </div>
         );
     }
+    const validateField = (name, value) => {
+        let fieldErrors = { ...errors };
+
+        switch (name) {
+            case 'productName':
+                if (!value.trim()) {
+                    fieldErrors.productName = "Product Name is required.";
+                } else if (value.length < 3) {
+                    fieldErrors.productName = "Product Name must be at least 3 characters long.";
+                } else {
+                    delete fieldErrors.productName;
+                }
+                break;
+
+            case 'productDescription':
+                if (!value.trim()) {
+                    fieldErrors.productDescription = "Product Description is required.";
+                } else if (value.length < 10) {
+                    fieldErrors.productDescription = "Product Description must be at least 10 characters long.";
+                } else {
+                    delete fieldErrors.productDescription;
+                }
+                break;
+
+            case 'productPrice':
+                if (!value) {
+                    fieldErrors.productPrice = "Product Price is required.";
+                } else if (isNaN(value) || value <= 0) {
+                    fieldErrors.productPrice = "Product Price must be a positive number.";
+                } else {
+                    delete fieldErrors.productPrice;
+                }
+                break;
+
+            case 'stockQuantity':
+                if (!value) {
+                    fieldErrors.stockQuantity = "Stock Quantity is required.";
+                } else if (isNaN(value) || value < 0) {
+                    fieldErrors.stockQuantity = "Stock Quantity must be a positive number.";
+                } else {
+                    delete fieldErrors.stockQuantity;
+                }
+                break;
+            case 'discountPercentage':
+                if (!value) {
+                    fieldErrors.discountPercentage = "Discount Percentage must be a positive number.";
+                } else {
+                    delete fieldErrors.discountPercentage;
+                }
+                break;
+
+            case 'categoryId':
+                if (!value) {
+                    fieldErrors.categoryId = "Category is required.";
+                } else {
+                    delete fieldErrors.categoryId;
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        setErrors(fieldErrors);
+    };
+
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+        validateField(name, product[name]);
+    };
+
+
+    const validateForm = () => {
+        const hasErrors = Object.values(errors).some((error) => error);
+        const hasEmptyFields = Object.values(product).some((value) => value === '' || value === null);
+        setIsFormValid(!hasErrors && !hasEmptyFields);
+    };
+
+
 
     return (
         <Box className="p-8 mx-auto max-w-7xl" sx={{ marginTop: '5%' }}>
@@ -221,8 +340,11 @@ export default function ProductDetail() {
                                         fullWidth
                                         value={product.productName}
                                         onChange={handleInputChange}
+                                        onBlur={handleBlur}
                                         required
                                         variant="outlined"
+                                        error={!!errors.productName}
+                                        helperText={errors.productName}
                                         className="mb-4"
                                         sx={{ '& .MuiInputBase-input': { color: 'black' } }}
                                     />
@@ -235,12 +357,35 @@ export default function ProductDetail() {
                                         fullWidth
                                         value={product.productPrice}
                                         onChange={handleInputChange}
+                                        onBlur={handleBlur}
+                                        error={!!errors.productPrice}
+                                        helperText={errors.productPrice}
                                         required
                                         variant="outlined"
                                         className="mb-4"
                                         inputProps={{ min: 0 }}
                                         sx={{ '& .MuiInputBase-input': { color: 'black' } }}
                                     />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <FormControl fullWidth variant="outlined" error={!!errors.categoryId}>
+                                        <InputLabel id="category-select-label">Category</InputLabel>
+                                        <Select
+                                            labelId="category-select-label"
+                                            name="categoryId"
+                                            value={product.categoryId}
+                                            onChange={handleCategoryChange}
+                                            label="Category"
+                                            required
+                                        >
+                                            {categories.map((category) => (
+                                                <MenuItem key={category.categoryId} value={category.categoryId}>
+                                                    {category.categorydName}
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                        {errors.categoryId && <Typography color="error">{errors.categoryId}</Typography>}
+                                    </FormControl>
                                 </Grid>
                                 <Grid item xs={12}>
                                     <TextField
@@ -250,6 +395,9 @@ export default function ProductDetail() {
                                         fullWidth
                                         value={product.stockQuantity}
                                         onChange={handleInputChange}
+                                        onBlur={handleBlur}
+                                        error={!!errors.stockQuantity}
+                                        helperText={errors.stockQuantity}
                                         required
                                         variant="outlined"
                                         className="mb-4"
@@ -266,10 +414,13 @@ export default function ProductDetail() {
                                         rows={4}
                                         value={product.productDescription}
                                         onChange={handleInputChange}
+                                        onBlur={handleBlur}
                                         required
                                         variant="outlined"
                                         className="mb-4"
                                         sx={{ '& .MuiInputBase-input': { color: 'black' } }}
+                                        error={!!errors.productDescription}
+                                        helperText={errors.productDescription}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -277,10 +428,11 @@ export default function ProductDetail() {
                                         name="discountPercentage"
                                         label="Discount %"
                                         fullWidth
-                                        multiline
-                                        rows={4}
                                         value={product.discountPercentage}
+                                        error={!!errors.discountPercentage}
+                                        helperText={errors.discountPercentage}
                                         onChange={handleInputChange}
+                                        onBlur={handleBlur}
                                         required
                                         variant="outlined"
                                         className="mb-4"
@@ -323,6 +475,7 @@ export default function ProductDetail() {
                                         type="submit"
                                         color="primary"
                                         fullWidth
+                                        disabled={!isFormValid}
                                     >
                                         Save Changes
                                     </Button>
