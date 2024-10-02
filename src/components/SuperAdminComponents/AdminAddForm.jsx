@@ -95,6 +95,8 @@ export default function AdminAddForm() {
         // Address
         if (!formData.address.trim()) {
             fieldErrors.address = "Address is required.";
+        } else if (formData.address.length < 5) {
+            fieldErrors.address = "Address must be at least 5 characters long.";
         }
 
         // Gender
@@ -109,9 +111,16 @@ export default function AdminAddForm() {
         e.preventDefault();
         validateFields();
         if (Object.keys(errors).length > 0) {
+            // Loop through each error and show a SweetAlert for each validation issue
+            for (const [field, errorMessage] of Object.entries(errors)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Field Validation Error',
+                    text: `Error in ${field}: ${errorMessage}`,
+                });
+            }
             return;
         }
-
         try {
             console.log("formData",formData)
             await AuthService.register(formData);

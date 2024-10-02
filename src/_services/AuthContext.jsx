@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import AuthService from "./AuthService";
 
 export const AuthContext = createContext();
-const authService = new AuthService();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -12,8 +11,9 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const getUser = async () => {
             try {
-                const userData = await authService.getCurrentUser(); // Replace with your actual fetch logic
+                const userData =  AuthService.getCurrentUser(); // Ensure it's awaited if asynchronous
                 setUser(userData);
+                console.log("userData", userData);
             } catch (error) {
                 console.error('Failed to fetch user data:', error);
             } finally {

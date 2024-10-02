@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useContext} from "react";
 import { Link, useLocation } from "react-router-dom";
 import NotificationDropdown from "components/Dropdowns/NotificationDropdown.js";
 import UserDropdown from "components/Dropdowns/UserDropdown.js";
+import {AuthContext} from "../../_services/AuthContext";
 
 export default function Sidebar() {
   const [collapseShow, setCollapseShow] = useState("hidden");
   const location = useLocation();
   const [activeLink, setActiveLink] = useState(location.pathname);
+  const { user } = useContext(AuthContext); // Assuming user contains the role info
 
   useEffect(() => {
     setActiveLink(location.pathname);
@@ -90,7 +92,7 @@ export default function Sidebar() {
                 { path: "/admin/orders", label: "Orders", icon: "fas fa-shopping-cart" },
                 { path: "/admin/coupons", label: "Coupons", icon: "fas fa-tags" },
                 { path: "/admin/customers", label: "Customers", icon: "fas fa-users" },
-                { path: "/admin/admins", label: "Admins", icon: "fas fa-users" },
+                ...(user?.role === 'SuperAdmin' ? [{ path: "/admin/admins", label: "Admins", icon: "fas fa-users" }] : []),
                 { path: "/admin/adminProfile", label: "My Profile", icon: "fas fa-user" },
               ].map(({ path, label, icon }) => (
                   <li className="items-center" key={path}>

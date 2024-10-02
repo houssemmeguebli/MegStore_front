@@ -9,11 +9,14 @@ export default function CustomerInfo({ currentUser }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
+    const today = new Date().toISOString().split('T')[0];
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
-        role: 0, // default value for role
-        userStatus: 0, // default value for userStatus
+        role: 0,
+        userStatus: 0,
         gender: "",
         dateOfBirth: "",
         phoneNumber: "",
@@ -46,6 +49,10 @@ export default function CustomerInfo({ currentUser }) {
 
         fetchUser();
     }, [currentUser.id]);
+    useEffect(() => {
+        validateFields();
+    }, [formData]);
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -54,21 +61,48 @@ export default function CustomerInfo({ currentUser }) {
             [name]: value
         });
     };
-
-    const handleRoleChange = (e) => {
-        const { value } = e.target;
-        setFormData({
-            ...formData,
-            role: parseInt(value, 10) // Parse to integer for role
-        });
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
     };
 
-    const handleUserStatusChange = (e) => {
-        const { value } = e.target;
-        setFormData({
-            ...formData,
-            userStatus: parseInt(value, 10) // Parse to integer for userStatus
-        });
+    const validateFields = () => {
+        let fieldErrors = {};
+
+        // Full Name
+        if (!formData.fullName.trim()) {
+            fieldErrors.fullName = "Full Name is required.";
+        } else if (formData.fullName.length < 3) {
+            fieldErrors.fullName = "Full Name must be at least 3 characters long.";
+        }
+
+        // Email
+        if (!formData.email) {
+            fieldErrors.email = "Email is required.";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            fieldErrors.email = "Invalid email format.";
+        }
+
+        // Date of Birth
+        if (!formData.dateOfBirth) {
+            fieldErrors.dateOfBirth = "Date of Birth is required.";
+        }
+
+        // Phone Number
+        if (!formData.phoneNumber) {
+            fieldErrors.phoneNumber = "Phone Number is required.";
+        } else if (!/^\d{8,15}$/.test(formData.phoneNumber)) {
+            fieldErrors.phoneNumber = "Phone Number must be between 8 to 15 digits.";
+        }
+
+        // Address
+        if (!formData.address.trim()) {
+            fieldErrors.address = "Address is required.";
+        } else if (formData.address.length < 10) {
+            fieldErrors.address = "Address must be at least 10 characters long.";
+        }
+
+        setErrors(fieldErrors);
     };
 
     const handleEditClick = () => {
@@ -92,6 +126,20 @@ export default function CustomerInfo({ currentUser }) {
     };
 
     const handleSaveClick = async () => {
+        validateFields();
+
+        // Check for validation errors and alert the user if present
+        if (Object.keys(errors).length > 0) {
+            // Loop through each error and show a SweetAlert for each validation issue
+            for (const [field, errorMessage] of Object.entries(errors)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Field Validation Error',
+                    text: `Error in ${field}: ${errorMessage}`,
+                });
+            }
+            return;
+        }
         try {
             await UserService.updateUser(currentUser.id, formData);
             setUser(formData); // Update user state with form data
@@ -159,10 +207,14 @@ export default function CustomerInfo({ currentUser }) {
                                     type="text"
                                     name="fullName"
                                     value={formData.fullName}
+                                    onBlur={handleBlur}
                                     onChange={handleInputChange}
                                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
                                     disabled={!editMode}
                                 />
+                                {errors.fullName && touched.fullName && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
+                                )}
                             </div>
                         </div>
                         <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
@@ -174,10 +226,14 @@ export default function CustomerInfo({ currentUser }) {
                                     type="email"
                                     name="email"
                                     value={formData.email}
+                                    onBlur={handleBlur}
                                     onChange={handleInputChange}
                                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
                                     disabled={!editMode}
                                 />
+                                {errors.email && touched.email && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                                )}
                             </div>
                         </div>
 
@@ -191,9 +247,13 @@ export default function CustomerInfo({ currentUser }) {
                                     name="phoneNumber"
                                     value={formData.phoneNumber}
                                     onChange={handleInputChange}
+                                    onBlur={handleBlur}
                                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
                                     disabled={!editMode}
                                 />
+                                {errors.phoneNumber && touched.phoneNumber && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
+                                )}
                             </div>
                         </div>
                         <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
@@ -206,9 +266,14 @@ export default function CustomerInfo({ currentUser }) {
                                     name="dateOfBirth"
                                     value={format(new Date(formData.dateOfBirth),  "yyyy-MM-dd")}
                                     onChange={handleInputChange}
+                                    onBlur={handleBlur}
                                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
                                     disabled={!editMode}
+                                    max={today}
                                 />
+                                {errors.dateOfBirth && touched.dateOfBirth && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
+                                )}
                             </div>
                         </div>
 
@@ -222,27 +287,14 @@ export default function CustomerInfo({ currentUser }) {
                                     name="address"
                                     value={formData.address}
                                     onChange={handleInputChange}
+                                    onBlur={handleBlur}
                                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
                                     disabled={!editMode}
                                 />
+                                {errors.address && touched.address && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.address}</p>
+                                )}
                             </div>
-                        </div>
-
-                        <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
-                            <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                                User Status
-                            </label>
-                            <select
-                                name="userStatus"
-                                value={formData.userStatus}
-                                onChange={handleUserStatusChange}
-                                className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                                disabled
-                            >
-                                <option value={0}>Inactive</option>
-                                <option value={1}>Active</option>
-                                <option value={2}>Suspended</option>
-                            </select>
                         </div>
                         <div className="w-full sm:w-6/12 xs:w-12/12 px-4 mb-4">
                             <div className="relative w-full mb-3">
@@ -255,6 +307,7 @@ export default function CustomerInfo({ currentUser }) {
                                     className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
                                     disabled
                                 />
+
                             </div>
                         </div>
                     </div>

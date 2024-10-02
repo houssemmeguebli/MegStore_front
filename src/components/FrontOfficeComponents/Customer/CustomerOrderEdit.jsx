@@ -13,6 +13,10 @@ const CustomerOrderEdit = () => {
     const [order, setOrder] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const { orderId } = useParams();
+    const [isFormValid, setIsFormValid] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [touched, setTouched] = useState({});
+
     const [formData, setFormData] = useState({
         orderDate: '',
         customerName: '',
@@ -71,6 +75,9 @@ const CustomerOrderEdit = () => {
 
         fetchOrder();
     }, [orderId]);
+    useEffect(() => {
+        validateForm();
+    }, [formData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -78,6 +85,8 @@ const CustomerOrderEdit = () => {
             ...formData,
             [name]: value,
         });
+        validateField(name, value);
+
     };
 
     const handleProductChange = (index, e) => {
@@ -130,7 +139,76 @@ const CustomerOrderEdit = () => {
             }
         }
     };
+    const validateField = (name, value) => {
+        let fieldErrors = { ...errors };
 
+        switch (name) {
+            case 'customerName':
+                if (!value.trim()) {
+                    fieldErrors.customerName = "Customer Name is required.";
+                } else if (value.length < 2) {
+                    fieldErrors.customerName = "Customer Name must be at least 2 characters long.";
+                } else {
+                    delete fieldErrors.customerName;
+                }
+                break;
+
+            case 'customerAddress':
+                if (!value.trim()) {
+                    fieldErrors.customerAddress = "Customer Address is required.";
+                } else if (value.length < 10) {
+                    fieldErrors.customerAddress = "Customer Address must be at least 10 characters long.";
+                } else {
+                    delete fieldErrors.customerAddress;
+                }
+                break;
+
+            case 'customerEmail':
+                if (!value) {
+                    fieldErrors.customerEmail = "Customer Email is required.";
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    fieldErrors.customerEmail = "Invalid email format.";
+                } else {
+                    delete fieldErrors.customerEmail;
+                }
+                break;
+            case 'orderNotes':
+                if (value.length > 0 && value.length < 10) {  // Check if value is provided and less than 10 characters
+                    fieldErrors.orderNotes = "Order Notes must be at least 10 characters long.";
+                } else {
+                    delete fieldErrors.orderNotes;  // Remove error if conditions are met
+                }
+                break;
+
+
+            case 'customerPhone':
+                if (!value.trim()) {
+                    fieldErrors.customerPhone = "Phone Number is required.";
+                } else if (!/^\d{8,15}$/.test(value)) {
+                    fieldErrors.customerPhone = "Phone Number must be between 8 to 15 digits.";
+                } else {
+                    delete fieldErrors.customerPhone;
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        setErrors(fieldErrors);
+        return Object.keys(fieldErrors).length === 0;
+    };
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+        validateField(name, formData[name]);
+    };
+
+    const validateForm = () => {
+        const hasErrors = Object.values(errors).some((error) => error);
+        const hasEmptyFields = Object.values(formData).some((value) => value === '' || value === null);
+        setIsFormValid(!hasErrors && !hasEmptyFields);
+    };
     const handleSave = async () => {
         const requestPayload = {
             orderId: parseInt(orderId, 10), // Use the correct orderId from params
@@ -255,9 +333,9 @@ const CustomerOrderEdit = () => {
                                 value={formData.orderDate}
                                 onChange={handleChange}
                                 fullWidth
+                                disabled
                                 InputLabelProps={{ shrink: true }}
                                 sx={{ mb: 2 }}
-                                disabled={order.orderStatus === (1||2) }
                             />
                         </Grid>
                         <Grid item xs={12} md={6}>
@@ -266,6 +344,9 @@ const CustomerOrderEdit = () => {
                                 type="text"
                                 name="customerName"
                                 value={formData.customerName}
+                                onBlur={handleBlur}
+                                error={!!errors.customerName}
+                                helperText={errors.customerName}
                                 onChange={handleChange}
                                 fullWidth
                                 sx={{ mb: 2 }}
@@ -279,6 +360,9 @@ const CustomerOrderEdit = () => {
                                 type="text"
                                 name="customerAddress"
                                 value={formData.customerAddress}
+                                onBlur={handleBlur}
+                                error={!!errors.customerAddress}
+                                helperText={errors.customerAddress}
                                 onChange={handleChange}
                                 fullWidth
                                 multiline
@@ -294,6 +378,9 @@ const CustomerOrderEdit = () => {
                                 type="email"
                                 name="customerEmail"
                                 value={formData.customerEmail}
+                                onBlur={handleBlur}
+                                error={!!errors.customerEmail}
+                                helperText={errors.customerEmail}
                                 onChange={handleChange}
                                 fullWidth
                                 sx={{ mb: 2 }}
@@ -307,6 +394,9 @@ const CustomerOrderEdit = () => {
                                 type="text"
                                 name="customerPhone"
                                 value={formData.customerPhone}
+                                onBlur={handleBlur}
+                                error={!!errors.customerPhone}
+                                helperText={errors.customerPhone}
                                 onChange={handleChange}
                                 fullWidth
                                 sx={{ mb: 2 }}
@@ -320,13 +410,15 @@ const CustomerOrderEdit = () => {
                                 type="text"
                                 name="orderNotes"
                                 value={formData.orderNotes}
+                                onBlur={handleBlur}
+                                error={!!errors.orderNotes}
+                                helperText={errors.orderNotes}
                                 onChange={handleChange}
                                 fullWidth
                                 multiline
                                 rows={2}
                                 sx={{ mb: 2 }}
                                 disabled={order.orderStatus === (1||2) }
-
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -393,8 +485,7 @@ const CustomerOrderEdit = () => {
                                 color="primary"
                                 type="submit"
                                 startIcon={<SaveIcon />}
-                                disabled={order.orderStatus === (1||2) }
-
+                                disabled={(order.orderStatus === (1||2)) ||!isFormValid}
                             >
                                 Save Changes
                             </Button>

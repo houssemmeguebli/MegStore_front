@@ -20,6 +20,9 @@ import CustomerDetails from "../components/AdminComponents/Customers/CustomerDet
 import AdminProfile from "../views/BackOffice/AdminProfile";
 import AdminsTable from "../components/SuperAdminComponents/AdminsTable";
 import AdminAddForm from "../components/SuperAdminComponents/AdminAddForm";
+import {AuthProvider} from "../_services/AuthContext";
+import ProtectedRoute from "../_services/ProtectedRoute";
+import Unauthorized from "../components/Unauthorized/Unauthorized";
 
 export default function Admin() {
     return (
@@ -30,27 +33,36 @@ export default function Admin() {
                 {/* Header */}
                 <HeaderStats />
                 <div className="px-4 md:px-10 mx-auto w-full -m-24">
-                    <Routes>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="products" element={<Products />} />
-                        <Route path="products/:productId" element={<ProductDetail />} />
-                        <Route path="categories" element={<Categories />} />
-                        <Route path="categories/:categoryId" element={<CategoriesDetails/>} />
-                        <Route path="coupons" element={<Coupons />} />
-                        <Route path="users/:customerId" element={<CustomerDetails/>} />
-                        <Route path="customers" element={<Customers/>} />
-                        <Route path="admins" element={<AdminsTable/>} />
-                        <Route path="admins/addAdmin" element={<AdminAddForm/>} />
-                        <Route path="adminProfile" element={<AdminProfile/>} />
-                        <Route path="coupons/:couponId" element={<CouponDetails />} />
-                        <Route path="orders/:orderId" element={<OrderDetails/>} />
-                        <Route path="orders/edit/:orderId" element={<OrderEdit/>} />
-                        <Route path="orders" element={<Orders />} />
-                        {/* Redirect from /BackOffice to /BackOffice/dashboard */}
-                        <Route path="/" element={<Navigate to="dashboard" />} />
-                        {/* Redirect any unmatched routes */}
-                        <Route path="*" element={<Navigate to="dashboard" />} />
-                    </Routes>
+                    <AuthProvider>
+                        <Routes>
+                            {/* Protected Routes for Admin and SuperAdmin Roles */}
+                            <Route element={<ProtectedRoute roles={["Admin", "SuperAdmin"]} />}>
+                                <Route path="dashboard" element={<Dashboard />} />
+                                <Route path="products" element={<Products />} />
+                                <Route path="products/:productId" element={<ProductDetail />} />
+                                <Route path="categories" element={<Categories />} />
+                                <Route path="categories/:categoryId" element={<CategoriesDetails />} />
+                                <Route path="coupons" element={<Coupons />} />
+                                <Route path="users/:customerId" element={<CustomerDetails />} />
+                                <Route path="customers" element={<Customers />} />
+                                <Route path="adminProfile" element={<AdminProfile />} />
+                                <Route path="coupons/:couponId" element={<CouponDetails />} />
+                                <Route path="orders/:orderId" element={<OrderDetails />} />
+                                <Route path="orders/edit/:orderId" element={<OrderEdit />} />
+                                <Route path="orders" element={<Orders />} />
+                                {/* Redirect from /BackOffice to /BackOffice/dashboard */}
+                                <Route path="/" element={<Navigate to="dashboard" />} />
+                                {/* Redirect any unmatched routes */}
+                                <Route path="/unauthorized" element={<Unauthorized />} />
+                                <Route path="*" element={<Navigate to="dashboard" />} />
+                            </Route>
+                            <Route element={<ProtectedRoute roles={["SuperAdmin"]} />}>
+                                <Route path="admins" element={<AdminsTable />} />
+                                <Route path="admins/addAdmin" element={<AdminAddForm />} />
+                            </Route>
+                        </Routes>
+                    </AuthProvider>
+
                     <FooterAdmin />
                 </div>
             </div>

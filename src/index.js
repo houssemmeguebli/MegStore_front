@@ -18,6 +18,9 @@ import ProductDetail from "./components/FrontOfficeComponents/Product/ProductDet
 import CustomerProfile from "./views/frontOfiice/CustomerProfile";
 import CustomerOrdersFront from "./components/FrontOfficeComponents/Customer/CustomerOrdersFront";
 import CustomerOrderEdit from "./components/FrontOfficeComponents/Customer/CustomerOrderEdit";
+import ProtectedRoute from "./_services/ProtectedRoute";
+import Unauthorized from "./components/Unauthorized/Unauthorized";
+import {AuthProvider} from "./_services/AuthContext";
 
 
 
@@ -25,23 +28,28 @@ import CustomerOrderEdit from "./components/FrontOfficeComponents/Customer/Custo
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
-    <BrowserRouter>
-        <Routes>
-            {/* Routes with layouts */}
-            <Route path="/admin/*" element={<Admin />} />
-            <Route path="/auth/*" element={<Auth />} />
-            {/* Routes without layouts */}
-            <Route path="/landing" element={<Landing />} />
-            <Route path="/shop" element={<Shop />} />
-            <Route path="/shop/productDetails/:productId" element={<ProductDetail />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/customerProfile" element={<CustomerProfile />} />
-            <Route path="/customerProfile/orders/:orderId" element={<CustomerOrdersFront />} />
-            <Route path="/customerProfile/orders/edit/:orderId" element={<CustomerOrderEdit />} />
-            <Route path="/order" element={<Order />} />
-            <Route path="/" element={<Landing />} />
-            {/* Redirect for all unmatched routes */}
-            <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+        <BrowserRouter>
+            <Routes>
+                {/* Public Routes */}
+                <Route path="/admin/*" element={<Admin />} />
+                <Route path="/auth/*" element={<Auth />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/landing" element={<Landing />} />
+                <Route path="/shop/productDetails/:productId" element={<ProductDetail />} />
+                <Route path="/cart" element={<Cart />} />
+                {/* Protected Routes for Customer Role */}
+                <Route element={<ProtectedRoute roles={["Customer","Admin", "SuperAdmin"]} />}>
+                    <Route path="/customerProfile" element={<CustomerProfile />} />
+                    <Route path="/customerProfile/orders/:orderId" element={<CustomerOrdersFront />} />
+                    <Route path="/customerProfile/orders/edit/:orderId" element={<CustomerOrderEdit />} />
+                    <Route path="/order" element={<Order />} />
+                </Route>
+                {/* Redirect for all unmatched routes */}
+                <Route path="/" element={<Landing />} />
+                <Route path="/unauthorized" element={<Unauthorized />} />
+                <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+        </BrowserRouter>
+    </AuthProvider>
 );

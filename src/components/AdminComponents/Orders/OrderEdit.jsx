@@ -155,37 +155,42 @@ const OrderEdit = () => {
                     delete fieldErrors.customerName;
                 }
                 break;
-            case 'orderNotes':
-                if (value.length < 10) {
-                    fieldErrors.orderNotes = "order Notes  must be at least 10 characters long.";
-                }
-                else {
-                    delete fieldErrors.orderNotes;
-                }
-                break;
+
             case 'customerAddress':
                 if (!value.trim()) {
-                    fieldErrors.customerAddress = "Customer Address  is required.";
+                    fieldErrors.customerAddress = "Customer Address is required.";
                 } else if (value.length < 10) {
-                    fieldErrors.customerAddress = "Customer Address  must be at least 10 characters long.";
+                    fieldErrors.customerAddress = "Customer Address must be at least 10 characters long.";
                 } else {
                     delete fieldErrors.customerAddress;
                 }
                 break;
+
+            case 'orderNotes':
+                if (value.length > 0 && value.length < 10) {  // Check if value is provided and less than 10 characters
+                    fieldErrors.orderNotes = "Order Notes must be at least 10 characters long.";
+                } else {
+                    delete fieldErrors.orderNotes;  // Remove error if conditions are met
+                }
+                break;
+
             case 'customerEmail':
                 if (!value) {
                     fieldErrors.customerEmail = "Customer Email is required.";
-                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fieldErrors.customerEmail)) {
-                    fieldErrors.customerEmail = "Invalid email format."
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    fieldErrors.customerEmail = "Invalid email format.";
                 } else {
                     delete fieldErrors.customerEmail;
                 }
                 break;
+
             case 'customerPhone':
-                if (!value) {
+                if (!value.trim()) {
                     fieldErrors.customerPhone = "Phone Number is required.";
-                } else if (!/^\d{10,15}$/.test(fieldErrors.customerPhone)) {
-                    fieldErrors.customerPhone = "Phone Number must be between 10 to 15 digits.";
+                } else if (!/^\d{8,15}$/.test(value)) {
+                    fieldErrors.customerPhone = "Phone Number must be between 8 to 15 digits.";
+                } else {
+                    delete fieldErrors.customerPhone;
                 }
                 break;
 
@@ -197,7 +202,6 @@ const OrderEdit = () => {
                 }
                 break;
 
-
             default:
                 break;
         }
@@ -205,6 +209,7 @@ const OrderEdit = () => {
         setErrors(fieldErrors);
         return Object.keys(fieldErrors).length === 0;
     };
+
 
     const handleBlur = (e) => {
         const { name } = e.target;
@@ -381,10 +386,10 @@ const OrderEdit = () => {
                                 type="text"
                                 name="orderNotes"
                                 value={formData.orderNotes}
+                                onChange={handleChange}
                                 onBlur={handleBlur}
                                 error={!!errors.orderNotes}
                                 helperText={errors.orderNotes}
-                                onChange={handleChange}
                                 fullWidth
                                 multiline
                                 rows={3}

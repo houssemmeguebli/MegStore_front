@@ -107,7 +107,7 @@ class AuthService {
         }
     }
 
-    getCurrentUser() {
+     getCurrentUser() {
         // Retrieve token from either localStorage or sessionStorage
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 

@@ -93,14 +93,16 @@ export default function Register() {
     // Phone Number
     if (!formData.phoneNumber) {
       fieldErrors.phoneNumber = "Phone Number is required.";
-    } else if (!/^\d{10,15}$/.test(formData.phoneNumber)) {
-      fieldErrors.phoneNumber = "Phone Number must be between 10 to 15 digits.";
+    } else if (!/^\d{8,15}$/.test(formData.phoneNumber)) {
+      fieldErrors.phoneNumber = "Phone Number must be between 8 to 15 digits.";
     }
 
     // Address
     if (!formData.address.trim()) {
       fieldErrors.address = "Address is required.";
-    }
+    } else if (formData.address.length < 5) {
+    fieldErrors.address = "Address must be at least 5 characters long.";
+  }
 
     // Gender
     if (formData.gender === null || formData.gender === "") {
@@ -113,7 +115,17 @@ export default function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     validateFields();
+
+    // Check for validation errors and alert the user if present
     if (Object.keys(errors).length > 0) {
+      // Loop through each error and show a SweetAlert for each validation issue
+      for (const [field, errorMessage] of Object.entries(errors)) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Field Validation Error',
+          text: `Error in ${field}: ${errorMessage}`,
+        });
+      }
       return;
     }
 

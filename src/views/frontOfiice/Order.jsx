@@ -7,12 +7,16 @@ import Swal from 'sweetalert2';
 import OrderService from "../../_services/OrderService";
 import UserService from "../../_services/UserService";
 import AuthService from "../../_services/AuthService";
+import SaveIcon from "@mui/icons-material/Save";
 
 const Order = () => {
     const [cartItems, setCartItems] = useState([]);
     const [paymentMethod, setPaymentMethod] = useState('creditCard');
     const [editShipping, setEditShipping] = useState(false);
+    const [touched, setTouched] = useState({});
     const [totalAmount, setTotalAmount] = useState(0);
+    const [isFormValid, setIsFormValid] = useState(false);
+    const [errors, setErrors] = useState({});
     const [userData, setUserData] = useState({
         name: '',
         email: '',
@@ -44,6 +48,10 @@ const Order = () => {
 
         fetchUserData();
     }, [customerId]);
+    useEffect(() => {
+        validateForm();
+    }, [userData]);
+
 
     useEffect(() => {
         // Retrieve totalAmount from local storage
@@ -52,7 +60,75 @@ const Order = () => {
             setTotalAmount(Number(storedTotal));
         }
     }, []);
+    const validateField = (name, value) => {
+        let fieldErrors = { ...errors };
+        let isValid = true;
 
+        switch (name) {
+            case 'name':
+                if (!value.trim()) {
+                    fieldErrors.name = "Customer Name is required.";
+                    isValid = false;
+                } else if (value.length < 2) {
+                    fieldErrors.name = "Customer Name must be at least 2 characters long.";
+                    isValid = false;
+                } else {
+                    delete fieldErrors.name;
+                }
+                break;
+            case 'address':
+                if (!value.trim()) {
+                    fieldErrors.address = "Customer Address is required.";
+                    isValid = false;
+                } else if (value.length < 10) {
+                    fieldErrors.address = "Customer Address must be at least 10 characters long.";
+                    isValid = false;
+                } else {
+                    delete fieldErrors.address;
+                }
+                break;
+            case 'email':
+                if (!value) {
+                    fieldErrors.email = "Customer Email is required.";
+                    isValid = false;
+                } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                    fieldErrors.email = "Invalid email format.";
+                    isValid = false;
+                } else {
+                    delete fieldErrors.email;
+                }
+                break;
+            case 'phone':
+                if (!value) {
+                    fieldErrors.phone = "Phone Number is required.";
+                    isValid = false;
+                } else if (!/^\d{8,15}$/.test(value)) {
+                    fieldErrors.phone = "Phone Number must be between 8 to 15 digits.";
+                    isValid = false;
+                } else {
+                    delete fieldErrors.phone;
+                }
+                break;
+            default:
+                break;
+        }
+
+        setErrors(fieldErrors);
+        return Object.keys(fieldErrors).length === 0;
+    };
+
+
+    const handleBlur = (e) => {
+        const { name } = e.target;
+        setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+        validateField(name, userData[name]);
+    };
+
+    const validateForm = () => {
+        const hasErrors = Object.values(errors).some((error) => error);
+        const hasEmptyFields = Object.values(userData).some((value) => value === '' || value === null);
+        setIsFormValid(!hasErrors && !hasEmptyFields);
+    };
     const handleFinalizeOrder = async () => {
         const orderData = {
             orderDate: new Date().toISOString(),
@@ -124,10 +200,32 @@ const Order = () => {
             ...prev,
             [name]: value,
         }));
+        validateField(name, value);
+
     };
 
     const handleToggleShippingEdit = async () => {
         if (editShipping && orderId) {
+            // Validate each field before proceeding
+            const isNameValid = validateField('name', userData.name);
+            const isEmailValid = validateField('email', userData.email);
+            const isAddressValid = validateField('address', userData.address);
+            const isPhoneValid = validateField('phone', userData.phone);
+
+            // If any field is invalid, show an error and stop execution
+            if (!isNameValid || !isEmailValid || !isAddressValid || !isPhoneValid) {
+                await Swal.fire({
+                    title: 'Invalid Data',
+                    text: 'Please correct the errors in the shipping information.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    background: '#fff',
+                    color: '#333',
+                    confirmButtonColor: '#f44336',
+                });
+                return;
+            }
+
             try {
                 const updatedOrderData = {
                     customerName: userData.name,
@@ -180,17 +278,41 @@ const Order = () => {
                             <Paper elevation={2} sx={{ padding: 3, mb: 4 }}>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Shipping Information</Typography>
-                                    <Button onClick={handleToggleShippingEdit}>
-                                        {editShipping ? 'Save' : 'Edit'}
+                                    <Button onClick={handleToggleShippingEdit}
+                                            disabled={!isFormValid}
+
+                                    >
+                                        {editShipping ? 'Save'  : 'Edit'}
                                     </Button>
                                 </Box>
                                 <Divider sx={{ my: 2 }} />
                                 {editShipping ? (
                                     <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                        <TextField label="Name" variant="outlined" name="name" value={userData.name} fullWidth onChange={handleChange} />
-                                        <TextField label="Email" variant="outlined" name="email" value={userData.email} fullWidth onChange={handleChange} />
-                                        <TextField label="Address" variant="outlined" name="address" value={userData.address} fullWidth onChange={handleChange} />
-                                        <TextField label="Phone" variant="outlined" name="phone" value={userData.phone} fullWidth onChange={handleChange} />
+                                        <TextField label="Name" variant="outlined" name="name" value={userData.name} fullWidth
+                                                   onChange={handleChange}
+                                                   onBlur={handleBlur}
+                                                   error={!!errors.name}
+                                                   helperText={errors.name}
+                                        />
+                                        <TextField label="Email" variant="outlined" name="email" value={userData.email} fullWidth
+                                                   onChange={handleChange}
+                                                       onBlur={handleBlur}
+                                                       error={!!errors.email}
+                                                       helperText={errors.email}
+
+                                        />
+                                        <TextField label="Address" variant="outlined" name="address" value={userData.address} fullWidth
+                                                   onChange={handleChange}
+                                                   onBlur={handleBlur}
+                                                   error={!!errors.address}
+                                                   helperText={errors.address}
+                                        />
+                                        <TextField label="Phone" variant="outlined" name="phone" value={userData.phone} fullWidth
+                                                   onChange={handleChange}
+                                                   onBlur={handleBlur}
+                                                   error={!!errors.phone}
+                                                   helperText={errors.phone}
+                                        />
                                     </Box>
                                 ) : (
                                     <Box>
