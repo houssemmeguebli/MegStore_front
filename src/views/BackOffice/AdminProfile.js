@@ -6,11 +6,13 @@ import { format } from "date-fns";
 import AuthService from "../../_services/AuthService";
 import UserService from "../../_services/UserService";
 import AdminProduct from "../../components/AdminComponents/Admin/AdminProducts";
+import ChangePassword from "../../components/ChangePassword/ChangePassword";
 
 export default function AdminProfile ( ){
     const currentAdmin= AuthService.getCurrentUser();
     const currentRole =currentAdmin.role
     console.log("currentAdmin",currentAdmin)
+
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
@@ -25,6 +27,7 @@ export default function AdminProfile ( ){
         address: "",
         dateOfCreation: ""
     });
+    console.log("user",user)
 
     useEffect(() => {
         console.log("currentAdmin",currentAdmin)
@@ -220,6 +223,7 @@ export default function AdminProfile ( ){
                                     >
                                         <option value={0}>Admin</option>
                                         <option value={1}>Customer</option>
+                                        <option value={2}>SuperAdmin</option>
                                     </select>
                                 </div>
                             </div>
@@ -293,6 +297,9 @@ export default function AdminProfile ( ){
             <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
             <AdminProduct adminId={currentAdmin}/>
             </div>
+            <ChangePassword currentUser={currentAdmin} />
+
+
         </>
     );
 }

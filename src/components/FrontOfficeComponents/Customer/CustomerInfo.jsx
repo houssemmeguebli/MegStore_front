@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 import Swal from 'sweetalert2';
 import { Box, Button } from "@mui/material";
 import { format } from "date-fns";
+import ChangePassword from "../../ChangePassword/ChangePassword";
 
 export default function CustomerInfo({ currentUser }) {
     const [user, setUser] = useState(null);
@@ -28,6 +29,7 @@ export default function CustomerInfo({ currentUser }) {
         const fetchUser = async () => {
             try {
                 const data = await UserService.getUserById(currentUser.id);
+                console.log("data",data)
                 setUser(data);
                 setFormData({
                     fullName: data.fullName,
@@ -160,6 +162,7 @@ export default function CustomerInfo({ currentUser }) {
     }
 
     return (
+        <>
         <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-100 border-0">
             <div className="rounded-t bg-white mb-0 px-6 py-6">
                 <div className="text-center flex justify-between">
@@ -312,7 +315,10 @@ export default function CustomerInfo({ currentUser }) {
                         </div>
                     </div>
                 </form>
+
             </div>
         </div>
+    <ChangePassword currentUser={currentUser} />
+    </>
     );
 }

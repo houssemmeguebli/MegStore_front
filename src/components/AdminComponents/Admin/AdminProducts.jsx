@@ -58,7 +58,10 @@ const AdminProduct = ({ adminId }) => {
                     <h6 className="text-blueGray-700 text-xl font-bold">Products Added by {adminId.fullName}</h6>
                 </div>
             {products.length === 0 ? (
-                <Typography variant="body1">No products found for this admin.</Typography>
+                    <h6 className="text-blueGray-400 text-sm mt-3 mb-6  font-bold uppercase" style={{marginLeft:"2%"}}>
+                        No products found for this admin.
+                    </h6>
+
             ) : (
                 <div className="p-4">
                     <Typography variant="h6" className="flex items-center text-gray-700 mb-4">

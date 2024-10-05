@@ -8,6 +8,8 @@ import Navbar from "components/Navbars/AuthNavbar.js";
 import Login from "../views/frontOfiice/auth/Login.js";
 import Register from "../views/frontOfiice/auth/Register.js";
 import Footer from "../components/Footers/Footer";
+import ForgotPassword from "../components/ChangePassword/forgot-password";
+import ResetPassword from "../components/ChangePassword/ResetPassword";
 
 export default function Auth() {
     return (
@@ -24,6 +26,9 @@ export default function Auth() {
                     <Routes>
                         <Route path="login" element={<Login />} />
                         <Route path="register" element={<Register />} />
+                        <Route path="forgot-password" element={<ForgotPassword/>} />
+                        <Route path="resetPassword" element={<ResetPassword/>} />
+
                         {/* Redirect from /auth to /auth/login */}
                         <Route path="/" element={<Navigate to="/auth/login" />} />
                         {/* Redirect any unmatched routes */}

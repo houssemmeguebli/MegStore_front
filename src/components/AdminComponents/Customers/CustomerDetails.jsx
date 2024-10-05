@@ -7,6 +7,7 @@ import CustomerOrders from "./CustomerOrders";
 import { format } from "date-fns";
 import AuthService from "../../../_services/AuthService";
 import AdminProduct from "../Admin/AdminProducts";
+import ChangePassword from "../../ChangePassword/ChangePassword";
 
 export default function CustomerDetails ({ currentUser }){
     const currentCustomer=  AuthService.getCurrentUser();
@@ -423,6 +424,7 @@ export default function CustomerDetails ({ currentUser }){
                 <AdminProduct adminId={user}/>
             </div>
             ) : null}
+
         </>
     );
 }

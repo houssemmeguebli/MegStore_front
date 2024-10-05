@@ -54,11 +54,12 @@ class AuthService {
         }
     }
 
-    async changePassword(userId, currentPassword, newPassword) {
+
+    async changePassword(userId, currentPassword, newPassword, confirmNewPassword) {
         try {
             const response = await axios.post(
                 `${this.baseUrl}/change-password/${userId}`,
-                { currentPassword, newPassword },
+                { currentPassword, newPassword, confirmNewPassword },
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -70,6 +71,7 @@ class AuthService {
             throw error.response?.data?.message || 'An error occurred while changing the password.';
         }
     }
+
 
     async forgotPassword(email) {
         try {

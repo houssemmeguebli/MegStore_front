@@ -46,7 +46,7 @@ const ProductDetail = () => {
         };
 
         fetchProductDetails();
-    }, [product]);
+    }, [productId]);  // Use productId as a dependency
 
     const handleAddToCart = () => {
         const cartItems = JSON.parse(localStorage.getItem('cart')) || [];
@@ -91,11 +91,12 @@ const ProductDetail = () => {
         return product.productPrice.toFixed(2);
     };
 
-    if (loading) return (
-        <div className="flex justify-center items-center min-h-screen">
-            <CircularProgress size={60} />
-        </div>
-    );
+    if (loading) return <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-4xl font-bold text-blue-700 mb-4">MEGSTORE</h1>
+        <CircularProgress color="primary"/>
+        <p className="text-gray-600 mt-2">Loading, please wait...</p>
+    </div>
+
 
     if (!product) return <p>No product found</p>;
 
@@ -213,9 +214,7 @@ const ProductDetail = () => {
                                     <Typography variant="h6">Product Specifications</Typography>
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <Typography variant="body2">
-                                        {product.productDescription}
-                                    </Typography>
+                                    <Typography variant="body2">{product.productDescription}</Typography>
                                 </AccordionDetails>
                             </Accordion>
                         </CardContent>
@@ -223,39 +222,40 @@ const ProductDetail = () => {
                 </Grid>
 
                 {/* Related Products Section */}
-                <Box mt={8}>
+                <Box mt={8} style={{ marginBottom:'5%'}}>
                     <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
                         Related Products
                     </Typography>
                     <Grid container spacing={2}>
-                        {relatedProducts.map(relatedProduct => (
+                        {relatedProducts.slice(0, 4).map(relatedProduct => (
                             <Grid item xs={12} sm={6} md={3} key={relatedProduct.productId}>
-                                <RelatedProductCard sx={{ width: '300px', mx: '5%' }}>
+                                <RelatedProductCard sx={{ width: '300px', mx: '5%', display: 'flex', flexDirection: 'column', height: '100%' }}>
                                     <CardMedia
                                         component="img"
                                         height="150"
                                         image={`https://localhost:7048/${relatedProduct.imageUrls[0]}`}
                                         alt={relatedProduct.productName}
-                                        sx={{  width: '300px' }}
+                                        sx={{ width: '100%', objectFit: 'cover' , mx: '5%', display: 'flex', flexDirection: 'column', height: '100%' }} // Ensures image covers the area
                                     />
-                                    <CardContent>
+                                    <CardContent sx={{ flexGrow: 1 }}> {/* Allows content to expand */}
                                         <Typography variant="h6" noWrap>{relatedProduct.productName}</Typography>
                                         <Typography variant="body2" color="text.secondary">
                                             ${relatedProduct.productPrice.toFixed(2)}
                                         </Typography>
-                                        <Button
-                                            variant="outlined"
-                                            sx={{ mt: 2 }}
-                                            href={'/shop/productDetails/${relatedProduct.productId}'}
-                                        >
-                                            View Product
-                                        </Button>
                                     </CardContent>
+                                    <Button
+                                        variant="outlined"
+                                        sx={{ mt: 2, mb: 2 , margin:'3%'}} // Adds margin to the button
+                                        href={`/shop/productDetails/${relatedProduct.productId}`}
+                                    >
+                                        View Product
+                                    </Button>
                                 </RelatedProductCard>
                             </Grid>
                         ))}
                     </Grid>
                 </Box>
+
             </main>
             <Footer />
         </>
