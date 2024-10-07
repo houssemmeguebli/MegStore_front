@@ -140,9 +140,6 @@ export default function CustomerDetails ({ currentUser }){
         if (!formData.userStatus) {
             fieldErrors.userStatus = "User Status   is required.";
         }
-        if (!formData.role) {
-            fieldErrors.role = "User role   is required.";
-        }
 
 
         // Phone Number

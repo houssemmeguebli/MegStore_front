@@ -6,6 +6,7 @@ import UserService from "../../../_services/UserService";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AuthService from "../../../_services/AuthService";
 
 const CustomerTable = ({ color }) => {
     const [customers, setCustomers] = useState([]);
@@ -13,7 +14,7 @@ const CustomerTable = ({ color }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const customersPerPage = 6; // Number of customers per page
     const navigate = useNavigate();
-
+    const currentUser=AuthService.getCurrentUser();
     useEffect(() => {
         const fetchCustomers = async () => {
             try {
@@ -131,9 +132,11 @@ const CustomerTable = ({ color }) => {
                                 </td>
                                 <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-right">
                                     <div className="flex justify-end space-x-2">
+                                        {currentUser.role === "SuperAdmin" &&
                                         <IconButton onClick={() => handleDelete(customer.id)} className="text-red-500 hover:text-red-700" title="Delete">
                                             <span className="text-xl"> <DeleteIcon /></span>
                                         </IconButton>
+                                        }
                                         <IconButton onClick={() => handleViewDetails(customer.id)} className="text-green-500 hover:text-green-700" title="View Details">
                                             <span className="text-xl"><VisibilityIcon /></span>
                                         </IconButton>

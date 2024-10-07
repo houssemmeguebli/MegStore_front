@@ -1,4 +1,5 @@
 import axios from 'axios';
+import SweetAlert from 'sweetalert2';
 
 const instance = axios.create({
     baseURL: 'https://localhost:7048/api',
@@ -6,6 +7,8 @@ const instance = axios.create({
         'Content-Type': 'application/json',
     }
 });
+
+// Request Interceptor: Attach the token to every request if it exists
 instance.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -13,21 +16,64 @@ instance.interceptors.request.use((config) => {
     }
     return config;
 }, (error) => {
+    // Handle request error here
     return Promise.reject(error);
 });
 
+// Response Interceptor: Handle rate limits and other response statuses
 instance.interceptors.response.use(
-    response => response,
+    response => response, // Pass through successful responses
     error => {
         if (error.response) {
-            console.log(`Response status: ${error.response.status}`);
-            console.log(`Response data:`, error.response.data);
-            if (error.response.status === 429) {
-                alert('Rate limit exceeded. Please try again later.');
+            const status = error.response.status;
+            const data = error.response.data;
+
+            console.log(`Response status: ${status}`);
+            console.log('Response data:', data);
+
+            // Handle rate limit error (status 429)
+            if (status === 429) {
+                SweetAlert.fire({
+                    icon: 'error',
+                    title: 'Rate Limit Exceeded',
+                    text: 'Too many requests. Please try again later.',
+                });
+            } else if (status >= 500) {
+                // Handle server errors (5xx)
+                SweetAlert.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: 'Something went wrong on the server. Please try again later.',
+                });
+            } else if (status === 401) {
+                // Handle unauthorized access
+                SweetAlert.fire({
+                    icon: 'warning',
+                    title: 'Unauthorized',
+                    text: 'Your session has expired. Please log in again.',
+                });
+                // Optionally, redirect the user to the login page
+                localStorage.removeItem('token');
+                window.location.href = '/auth/login'; // Redirect to login
             }
+        } else if (error.request) {
+            // Handle network errors or no response from server
+            console.error('Network error or no response received:', error.request);
+            SweetAlert.fire({
+                icon: 'error',
+                title: 'Network Error',
+                text: 'Unable to connect to the server. Please check your internet connection.',
+            });
         } else {
-            console.error('Response error without status code:', error);
+            // Handle other errors
+            console.error('Error', error.message);
+            SweetAlert.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An unknown error occurred. Please try again.',
+            });
         }
+
         return Promise.reject(error);
     }
 );

@@ -24,7 +24,6 @@ export default function Login() {
 
     try {
       const data = await AuthService.login(email, password); // Login request
-
       // Check the value of the "Remember Me" checkbox using useRef
       if (rememberMeRef.current.checked) {
         localStorage.setItem('token', data.token);  // Store in localStorage if "Remember Me" is checked
@@ -36,8 +35,12 @@ export default function Login() {
         title: 'Login Successful!',
         text: 'You have successfully logged in.',
       });
-
+      const currentUser = AuthService.getCurrentUser();
       navigate(fromCart ? '/cart' : '/shop');
+       if (currentUser.role === 'Admin' || currentUser.role === 'SuperAdmin') {
+        navigate('/admin/dashboard');  // Redirect Admin or SuperAdmin to dashboard
+      }
+
 
     } catch (error) {
       SweetAlert.fire({

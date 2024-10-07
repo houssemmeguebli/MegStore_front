@@ -219,7 +219,8 @@ export default function AdminProfile ( ){
                                         value={formData.role}
                                         onChange={handleRoleChange} // Use the new handler
                                         className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                                        disabled={!editMode}
+                                        disabled={!(currentRole === "SuperAdmin" && editMode)}
+
                                     >
                                         <option value={0}>Admin</option>
                                         <option value={1}>Customer</option>
@@ -237,7 +238,8 @@ export default function AdminProfile ( ){
                                         value={formData.userStatus}
                                         onChange={handleUserStatusChange} // Use the new handler
                                         className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                                        disabled={!editMode}
+                                        disabled={!(currentRole === "SuperAdmin" && editMode)}
+
                                     >
                                         <option value={0}>Inactive</option>
                                         <option value={1}>Active</option>
