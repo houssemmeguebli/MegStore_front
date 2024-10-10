@@ -3,7 +3,7 @@ import {Link, useLocation, useNavigate} from "react-router-dom";
 import SweetAlert from "sweetalert2";
 import AuthService from "../../../_services/AuthService";
 import {Visibility, VisibilityOff} from "@mui/icons-material";
-import {IconButton, InputAdornment} from "@mui/material"; // Import SweetAlert2 for alerts
+import {IconButton, InputAdornment, TextField} from "@mui/material"; // Import SweetAlert2 for alerts
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -41,7 +41,6 @@ export default function Login() {
         navigate('/admin/dashboard');  // Redirect Admin or SuperAdmin to dashboard
       }
 
-
     } catch (error) {
       SweetAlert.fire({
         icon: 'error',
@@ -59,8 +58,10 @@ export default function Login() {
           <div className="w-full lg:w-4/12 px-4">
             <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-200 border-0">
               <div className="rounded-t mb-0 px-6 py-6">
-                <h2 className="text-center text-2xl font-bold text-blueGray-700">Welcome Back</h2>
-                <hr className="mt-6 border-b-1 border-blueGray-300"/>
+                <h2 className="text-center text-2xl font-bold text-blueGray-700">
+                  Welcome Back
+                </h2>
+                <hr className="mt-6 border-b-1 border-blueGray-300" />
               </div>
               <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
                 <form onSubmit={handleLogin}>
@@ -71,13 +72,15 @@ export default function Login() {
                     >
                       Email
                     </label>
-                    <input
-                        type="email"
+                    <TextField
+                        className="bg-white"
                         id="email"
+                        type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                        fullWidth
                         placeholder="Email"
+                        variant="outlined"
                         required
                     />
                   </div>
@@ -89,27 +92,35 @@ export default function Login() {
                     >
                       Password
                     </label>
-                    <input
-                        type={isPasswordVisible ? "text" : "password"} // Toggle between text and password
+                    <TextField
+                        className="bg-white"
                         id="password"
+                        type={isPasswordVisible ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                        fullWidth
                         placeholder="Password"
+                        variant="outlined"
                         required
+                        InputProps={{
+                          endAdornment: (
+                              <InputAdornment position="end">
+                                <IconButton
+                                    onClick={togglePasswordVisibility}
+                                    edge="end"
+                                >
+                                  {isPasswordVisible ? (
+                                      <VisibilityOff />
+                                  ) : (
+                                      <Visibility />
+                                  )}
+                                </IconButton>
+                              </InputAdornment>
+                          ),
+                        }}
                     />
-                    <button
-                        type="button"
-                        onClick={togglePasswordVisibility}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                    >
-                      {isPasswordVisible ? (
-                          <VisibilityOff className="text-gray-400"/> // Eye slash for hidden password
-                      ) : (
-                          <Visibility className="text-gray-400"/> // Eye for visible password
-                      )}
-                    </button>
                   </div>
+
                   <div>
                     <label className="inline-flex items-center cursor-pointer">
                       <input
@@ -119,18 +130,20 @@ export default function Login() {
                           className="form-checkbox border-0 rounded text-blueGray-700 ml-1 w-5 h-5 ease-linear transition-all duration-150"
                       />
                       <span className="ml-2 text-sm font-semibold text-blueGray-600">
-                     Remember me
-                      </span>
+                      Remember me
+                    </span>
                     </label>
                   </div>
 
                   <div className="text-center mt-6">
                     <button
-                        className={`bg-blueGray-800 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`bg-blueGray-800 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150 ${
+                            loading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                         type="submit"
                         disabled={loading} // Disable button while loading
                     >
-                      {loading ? 'Signing In...' : 'Sign In'}
+                      {loading ? "Signing In..." : "Sign In"}
                     </button>
                   </div>
                 </form>

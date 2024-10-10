@@ -38,13 +38,6 @@ instance.interceptors.response.use(
                     title: 'Rate Limit Exceeded',
                     text: 'Too many requests. Please try again later.',
                 });
-            } else if (status >= 500) {
-                // Handle server errors (5xx)
-                SweetAlert.fire({
-                    icon: 'error',
-                    title: 'Server Error',
-                    text: 'Something went wrong on the server. Please try again later.',
-                });
             } else if (status === 401) {
                 // Handle unauthorized access
                 SweetAlert.fire({
@@ -52,9 +45,7 @@ instance.interceptors.response.use(
                     title: 'Unauthorized',
                     text: 'Your session has expired. Please log in again.',
                 });
-                // Optionally, redirect the user to the login page
-                localStorage.removeItem('token');
-                window.location.href = '/auth/login'; // Redirect to login
+
             }
         } else if (error.request) {
             // Handle network errors or no response from server

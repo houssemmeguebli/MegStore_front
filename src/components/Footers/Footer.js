@@ -83,15 +83,7 @@ export default function Footer() {
                       <li>
                         <a
                             className="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
-                            href="/blog"
-                        >
-                          Blog
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                            className="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
-                            href="/contact"
+                            href="/"
                         >
                           Contact Us
                         </a>
@@ -109,22 +101,6 @@ export default function Footer() {
                             href="/returns"
                         >
                           Returns & Exchanges
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                            className="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
-                            href="/shipping"
-                        >
-                          Shipping Info
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                            className="text-blueGray-600 hover:text-blueGray-800 font-semibold block pb-2 text-sm"
-                            href="/faq"
-                        >
-                          FAQs
                         </a>
                       </li>
                       <li>
