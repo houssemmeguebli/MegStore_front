@@ -91,7 +91,7 @@ const AdminProduct = ({ adminId }) => {
                                             <TableCell>
                                                 <Box display="flex" alignItems="center">
                                                     <img
-                                                        src={item.imageUrls ? `https://localhost:7048/${item.imageUrls[0]}` : 'https://via.placeholder.com/64x64'}
+                                                        src={item.imageUrls ? `https://megstore.runasp.net/${item.imageUrls[0]}` : 'https://via.placeholder.com/64x64'}
                                                         alt={item.productName}
                                                         className="w-16 h-16 object-cover mr-4"
                                                     />

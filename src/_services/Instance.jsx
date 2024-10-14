@@ -2,7 +2,7 @@ import axios from 'axios';
 import SweetAlert from 'sweetalert2';
 
 const instance = axios.create({
-    baseURL: 'http://megstore.runasp.net/api',
+    baseURL: 'https://megstore.runasp.net/api',
     headers: {
         'Content-Type': 'application/json',
     }

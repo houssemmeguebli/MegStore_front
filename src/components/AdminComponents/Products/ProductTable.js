@@ -155,7 +155,7 @@ export default function ProductTable({ color }) {
                   <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
                     {product.imageUrls.length > 0 ? (
                         <img
-                            src={`http://megstore.runasp.net/${product.imageUrls[0]}`} // Assumes imageUrls is an array
+                            src={`https://megstore.runasp.net/${product.imageUrls[0]}`} // Assumes imageUrls is an array
                             alt={product.productName}
                             className="h-16 w-16 object-cover rounded border"
                             onError={(e) => {
