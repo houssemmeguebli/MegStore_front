@@ -2,7 +2,7 @@ import axios from 'axios';
 import SweetAlert from 'sweetalert2';
 
 const instance = axios.create({
-    baseURL: 'https://localhost:7048/api',
+    baseURL: 'http://megstore.runasp.net/api',
     headers: {
         'Content-Type': 'application/json',
     }
@@ -47,24 +47,7 @@ instance.interceptors.response.use(
                 });
 
             }
-        } else if (error.request) {
-            // Handle network errors or no response from server
-            console.error('Network error or no response received:', error.request);
-            SweetAlert.fire({
-                icon: 'error',
-                title: 'Network Error',
-                text: 'Unable to connect to the server. Please check your internet connection.',
-            });
-        } else {
-            // Handle other errors
-            console.error('Error', error.message);
-            SweetAlert.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'An unknown error occurred. Please try again.',
-            });
         }
-
         return Promise.reject(error);
     }
 );

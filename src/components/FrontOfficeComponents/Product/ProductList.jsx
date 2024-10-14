@@ -125,7 +125,7 @@ const ProductList = ({ products }) => {
                                     <CardMedia
                                         component="img"
                                         alt={product.productName}
-                                        image={product.imageUrls ? `https://localhost:7048/${product.imageUrls[0]}` : 'https://via.placeholder.com/300x300'}
+                                        image={product.imageUrls ? `http://megstore.runasp.net/${product.imageUrls[0]}` : 'https://via.placeholder.com/300x300'}
                                         sx={{
                                             width: '1000px',
                                             height: '250px',

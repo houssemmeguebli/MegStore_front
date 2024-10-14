@@ -47,7 +47,7 @@ export default function ProductDetail() {
             try {
                 const data = await ProductService.getProductById(productId);
                 setProduct(data);
-                const previews = Array.from(new Set(data.imageUrls.map(url => `https://localhost:7048/${url}`))); // Ensure unique URLs
+                const previews = Array.from(new Set(data.imageUrls.map(url => `http://megstore.runasp.net/${url}`))); // Ensure unique URLs
                 setImagePreviews(previews);
             } catch (error) {
                 console.error("Error fetching product:", error);

@@ -29,7 +29,7 @@ const ProductDetail = () => {
                 if (productData) {
                     setProduct(productData);
                     if (productData.imageUrls && productData.imageUrls.length > 0) {
-                        setMainImage(`https://localhost:7048/${productData.imageUrls[0]}`);
+                        setMainImage(`http://megstore.runasp.net/${productData.imageUrls[0]}`);
                     }
                     if (productData.categoryId) {
                         const category = await CategoryService.getCategoryById(productData.categoryId);
@@ -81,7 +81,7 @@ const ProductDetail = () => {
     };
 
     const handleThumbnailClick = (url) => {
-        setMainImage(`https://localhost:7048/${url}`);
+        setMainImage(`http://megstore.runasp.net/${url}`);
     };
 
     const calculateDiscountedPrice = () => {
@@ -136,7 +136,7 @@ const ProductDetail = () => {
                                     <CardMedia
                                         key={index}
                                         component="img"
-                                        image={`https://localhost:7048/${url}`}
+                                        image={`http://megstore.runasp.net/${url}`}
                                         sx={{
                                             height: '100px',
                                             width: '100px',
@@ -144,7 +144,7 @@ const ProductDetail = () => {
                                             borderRadius: 1,
                                             mx: 1,
                                             cursor: 'pointer',
-                                            border: mainImage === `https://localhost:7048/${url}` ? '2px solid #007bff' : '1px solid transparent',
+                                            border: mainImage === `http://megstore.runasp.net/${url}` ? '2px solid #007bff' : '1px solid transparent',
                                             transition: 'border-color 0.3s',
                                         }}
                                         onClick={() => handleThumbnailClick(url)}
@@ -233,7 +233,7 @@ const ProductDetail = () => {
                                     <CardMedia
                                         component="img"
                                         height="150"
-                                        image={`https://localhost:7048/${relatedProduct.imageUrls[0]}`}
+                                        image={`http://megstore.runasp.net/${relatedProduct.imageUrls[0]}`}
                                         alt={relatedProduct.productName}
                                         sx={{ width: '100%', objectFit: 'cover' , mx: '5%', display: 'flex', flexDirection: 'column', height: '100%' }} // Ensures image covers the area
                                     />

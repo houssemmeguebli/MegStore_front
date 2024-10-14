@@ -236,7 +236,7 @@ const OrderDetails = () => {
                                                     <TableCell>
                                                         <Box display="flex" alignItems="center">
                                                             <img
-                                                                src={product?.imageUrls ? `https://localhost:7048/${product.imageUrls[0]}` : 'https://via.placeholder.com/64x64'}
+                                                                src={product?.imageUrls ? `http://megstore.runasp.net/${product.imageUrls[0]}` : 'https://via.placeholder.com/64x64'}
                                                                 alt={product?.productName}
                                                                 className="w-16 h-16 object-cover mr-4"
                                                             />
